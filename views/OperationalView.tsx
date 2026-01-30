@@ -106,6 +106,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
   const [loading, setLoading] = useState(true);
   const [teams, setTeams] = useState<Team[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [personnelList, setPersonnelList] = useState<any[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -115,10 +116,13 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
     if (vData && vData.length > 0) {
       setVehicles(vData);
     } else {
-      // Se banco vazio, usa iniciais
       setVehicles(initialVehicles);
       await supabase.from('vehicles').insert(initialVehicles);
     }
+
+    // Buscar Efetivo
+    const { data: pData } = await supabase.from('personnel').select('*');
+    if (pData) setPersonnelList(pData);
 
     // Buscar Equipes
     const { data: tData } = await supabase.from('operational_teams').select('*');
@@ -141,6 +145,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
   useEffect(() => {
     fetchData();
   }, []);
+
 
 
   const [editId, setEditId] = useState<string | null>(null);
@@ -325,17 +330,8 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {(editId === team.id ? editingTeam!.members : team.members.filter(m => m.name.trim() !== '')).map((member, idx) => {
-                  const [personnel, setPersonnel] = useState<any[]>([]);
-
-                  useEffect(() => {
-                    const loadPersonnel = async () => {
-                      const { data } = await supabase.from('personnel').select('*');
-                      if (data) setPersonnel(data);
-                    };
-                    loadPersonnel();
-                  }, []);
-
                   return (
+
 
                     <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm transition-all group/member">
                       <div className="size-11 rounded-full bg-white flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm group-hover/member:text-slate-500 overflow-hidden transition-colors">
@@ -361,9 +357,10 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                               }}
                             >
                               <option value="">REMOVER POLICIAL</option>
-                              {personnel.map((p: any) => (
+                              {personnelList.map((p: any) => (
                                 <option key={p.id} value={`${p.graduation} ${p.name}`}>{p.graduation} {p.name}</option>
                               ))}
+
 
                             </select>
                             <input
