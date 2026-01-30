@@ -155,6 +155,8 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
 
 
   // Função para sincronizar KM da planilha
@@ -189,6 +191,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
   const handleSaveEdit = async () => {
     if (editingTeam) {
+      setIsSaving(true);
       const cleanedMembers = editingTeam.members.filter(m => m.name.trim() !== '');
       const { error } = await supabase
         .from('operational_teams')
@@ -203,9 +206,15 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         setTeams(teams.map(t => t.id === editingTeam.id ? { ...editingTeam, members: cleanedMembers } : t));
         setEditId(null);
         setEditingTeam(null);
+        alert('Alterações da guarnição salvas com sucesso!');
+      } else {
+        console.error('Erro ao salvar equipe:', error);
+        alert('Erro ao salvar no banco de dados. Verifique sua conexão.');
       }
+      setIsSaving(false);
     }
   };
+
 
 
   const handleStartEditVehicle = (vehicle: Vehicle) => {
@@ -216,6 +225,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
   const handleSaveVehicle = async () => {
     if (editingVehicle && editVehicleId) {
+      setIsSaving(true);
       const { error } = await supabase
         .from('vehicles')
         .update({
@@ -231,7 +241,6 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         .eq('id', editVehicleId);
 
       if (!error) {
-        // Se mudou o ID, precisamos recarregar tudo por causa da FK nas escalas
         if (editingVehicle.id !== editVehicleId) {
           fetchData();
         } else {
@@ -239,9 +248,15 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         }
         setEditVehicleId(null);
         setEditingVehicle(null);
+        alert('Dados da viatura atualizados!');
+      } else {
+        console.error('Erro ao salvar viatura:', error);
+        alert('Erro ao salvar viatura. Verifique os dados.');
       }
+      setIsSaving(false);
     }
   };
+
 
 
 
@@ -390,10 +405,13 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
               {editId === team.id && (
                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
-                  <button onClick={() => setEditId(null)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600">Cancelar</button>
-                  <button onClick={handleSaveEdit} className="bg-tor-dark text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-tor-dark/10">Salvar Alterações</button>
+                  <button onClick={() => setEditId(null)} disabled={isSaving} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 disabled:opacity-50">Cancelar</button>
+                  <button onClick={handleSaveEdit} disabled={isSaving} className="bg-tor-dark text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-tor-dark/10 disabled:opacity-50 min-w-[140px]">
+                    {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                  </button>
                 </div>
               )}
+
             </div>
           </div>
         ))}
@@ -567,8 +585,10 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
                 {editVehicleId === vehicle.id && (
                   <div className="flex justify-end gap-3 pt-2">
-                    <button onClick={() => setEditVehicleId(null)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600">Cancelar</button>
-                    <button onClick={handleSaveVehicle} className="bg-tor-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all">Salvar Viatura</button>
+                    <button onClick={() => setEditVehicleId(null)} disabled={isSaving} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 disabled:opacity-50">Cancelar</button>
+                    <button onClick={handleSaveVehicle} disabled={isSaving} className="bg-tor-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 min-w-[120px]">
+                      {isSaving ? 'Salvando...' : 'Salvar Viatura'}
+                    </button>
                   </div>
                 )}
               </div>
