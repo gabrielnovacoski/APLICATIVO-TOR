@@ -148,11 +148,12 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
     } else {
       setTeams(initialTeams);
       await supabase.from('operational_teams').upsert(initialTeams.map(t => ({
-        id: t.id,
+        // Não envia o ID '1' ou '2' para o banco gerar UUIDs reais
         name: t.name,
         sector: t.sector,
         members: t.members
       })));
+
 
     }
 
