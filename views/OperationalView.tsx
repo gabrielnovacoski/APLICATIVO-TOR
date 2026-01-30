@@ -146,15 +146,23 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         members: typeof t.members === 'string' ? JSON.parse(t.members) : t.members
       })));
     } else {
-      setTeams(initialTeams);
-      await supabase.from('operational_teams').upsert(initialTeams.map(t => ({
-        // Não envia o ID '1' ou '2' para o banco gerar UUIDs reais
-        name: t.name,
-        sector: t.sector,
-        members: t.members
-      })));
+      // Se banco vazio, cria as iniciais e já pega os IDs reais (UUIDs) de volta
+      const { data: insertedData } = await supabase.from('operational_teams').insert(
+        initialTeams.map(t => ({
+          name: t.name,
+          sector: t.sector,
+          members: t.members
+        }))
+      ).select();
 
-
+      if (insertedData) {
+        setTeams(insertedData.map(t => ({
+          ...t,
+          members: typeof t.members === 'string' ? JSON.parse(t.members) : t.members
+        })));
+      } else {
+        setTeams(initialTeams);
+      }
     }
 
     setLoading(false);
