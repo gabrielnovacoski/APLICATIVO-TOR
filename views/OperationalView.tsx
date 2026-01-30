@@ -151,8 +151,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         id: t.id,
         name: t.name,
         sector: t.sector,
-        members: t.members,
-        color: t.color
+        members: t.members
       })));
 
     }
@@ -217,9 +216,9 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
           id: editingTeam.id,
           name: editingTeam.name,
           sector: editingTeam.sector,
-          members: cleanedMembers,
-          color: editingTeam.color
+          members: cleanedMembers
         });
+
 
       if (!error) {
         setTeams(teams.map(t => t.id === editingTeam.id ? { ...editingTeam, members: cleanedMembers } : t));
