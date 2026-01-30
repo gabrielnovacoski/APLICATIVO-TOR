@@ -114,10 +114,24 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
     // Buscar Viaturas
     const { data: vData } = await supabase.from('vehicles').select('*');
     if (vData && vData.length > 0) {
-      setVehicles(vData);
+      setVehicles(vData.map(v => ({
+        ...v,
+        oilInterval: v.oil_interval,
+        lastOilChangeOdometer: v.last_oil_change_odometer
+      })));
     } else {
       setVehicles(initialVehicles);
-      await supabase.from('vehicles').insert(initialVehicles);
+      await supabase.from('vehicles').upsert(initialVehicles.map(v => ({
+        id: v.id,
+        model: v.model,
+        year: v.year,
+        status: v.status,
+        plate: v.plate,
+        odometer: v.odometer,
+        oil_interval: v.oilInterval,
+        last_oil_change_odometer: v.lastOilChangeOdometer
+      })));
+
     }
 
     // Buscar Efetivo
@@ -133,10 +147,14 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
       })));
     } else {
       setTeams(initialTeams);
-      await supabase.from('operational_teams').insert(initialTeams.map(t => ({
-        ...t,
-        members: t.members
+      await supabase.from('operational_teams').upsert(initialTeams.map(t => ({
+        id: t.id,
+        name: t.name,
+        sector: t.sector,
+        members: t.members,
+        color: t.color
       })));
+
     }
 
     setLoading(false);
@@ -195,12 +213,13 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
       const cleanedMembers = editingTeam.members.filter(m => m.name.trim() !== '');
       const { error } = await supabase
         .from('operational_teams')
-        .update({
+        .upsert({
+          id: editingTeam.id,
           name: editingTeam.name,
           sector: editingTeam.sector,
-          members: cleanedMembers
-        })
-        .eq('id', editingTeam.id);
+          members: cleanedMembers,
+          color: editingTeam.color
+        });
 
       if (!error) {
         setTeams(teams.map(t => t.id === editingTeam.id ? { ...editingTeam, members: cleanedMembers } : t));
@@ -209,11 +228,12 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         alert('Alterações da guarnição salvas com sucesso!');
       } else {
         console.error('Erro ao salvar equipe:', error);
-        alert('Erro ao salvar no banco de dados. Verifique sua conexão.');
+        alert(`Erro ao salvar no banco de dados: ${error.message}`);
       }
       setIsSaving(false);
     }
   };
+
 
 
 
@@ -228,7 +248,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
       setIsSaving(true);
       const { error } = await supabase
         .from('vehicles')
-        .update({
+        .upsert({
           id: editingVehicle.id,
           model: editingVehicle.model,
           year: editingVehicle.year,
@@ -237,8 +257,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
           odometer: editingVehicle.odometer,
           oil_interval: editingVehicle.oilInterval,
           last_oil_change_odometer: editingVehicle.lastOilChangeOdometer
-        })
-        .eq('id', editVehicleId);
+        });
 
       if (!error) {
         if (editingVehicle.id !== editVehicleId) {
@@ -251,11 +270,12 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         alert('Dados da viatura atualizados!');
       } else {
         console.error('Erro ao salvar viatura:', error);
-        alert('Erro ao salvar viatura. Verifique os dados.');
+        alert(`Erro ao salvar viatura: ${error.message}`);
       }
       setIsSaving(false);
     }
   };
+
 
 
 
