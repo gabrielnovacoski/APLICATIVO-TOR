@@ -25,6 +25,7 @@ export interface SheetData {
     arvc: string;
     retencoes: string;
     recusaIgp: string;
+    multaAdm: string;
     moedaEstrangeira: string;
     trends?: Record<string, number>;
   };
@@ -136,7 +137,8 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
       DINHEIRO: 33,
       MOEDA_ESTRANG: 34,
       MERC_ILEGAIS: 36,
-      CIGARROS: 37
+      CIGARROS: 37,
+      MULTA_ADM: 38
     };
 
 
@@ -265,6 +267,7 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
         arvc: getFormattedAndTrend(COL.ARVC).value,
         retencoes: getFormattedAndTrend(COL.RETENCOES).value,
         recusaIgp: getFormattedAndTrend(COL.RECUSA_IGP).value,
+        multaAdm: getFormattedAndTrend(COL.MULTA_ADM).value,
         moedaEstrangeira: getFormattedAndTrend(COL.MOEDA_ESTRANG).value,
         trends: {
           prisoes: getFormattedAndTrend(COL.PESS_DETIDAS).trend,

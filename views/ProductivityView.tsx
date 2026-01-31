@@ -249,11 +249,12 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
 
 
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-4 md:gap-x-8 gap-y-6 relative z-10 w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-x-4 md:gap-x-8 gap-y-6 relative z-10 w-full">
           {[
             { label: 'Autos de Infr.', value: currentData.summary.autos },
             { label: 'ARVC', value: currentData.summary.arvc },
             { label: 'Recusa IGP', value: currentData.summary.recusaIgp },
+            { label: 'Multa ADM Posse de Drogas', value: currentData.summary.multaAdm },
             { label: 'Ret. CNH/CLA', value: currentData.summary.retencoes },
             { label: 'Abordagens Pess.', value: currentData.summary.abordagens },
             { label: 'Abordagens Veic.', value: currentData.summary.abordagensVeic },
