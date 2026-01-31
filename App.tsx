@@ -346,8 +346,8 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <main className="p-8 pb-12 max-w-[1600px] mx-auto w-full flex-1">
-          <div ref={reportRef} className="bg-slate-50 rounded-3xl p-4 min-h-full">
+        <main className="p-4 md:p-8 pb-12 max-w-[1600px] mx-auto w-full flex-1">
+          <div ref={reportRef} className="bg-slate-50 rounded-[24px] md:rounded-3xl p-3 md:p-4 min-h-full">
             {renderView()}
           </div>
         </main>

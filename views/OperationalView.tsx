@@ -316,15 +316,15 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
           animation: flash-red 0.8s ease-in-out infinite;
         }
       `}</style>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
         {teams.map((team) => (
-          <div key={team.id} className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-xl transition-all duration-500">
+          <div key={team.id} className="bg-white rounded-[24px] md:rounded-[32px] p-5 md:p-8 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-xl transition-all duration-500">
             <div className={`absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -translate-y-12 translate-x-12 opacity-50`}></div>
 
-            <div className="flex justify-between items-start mb-8 relative z-10">
-              <div className="flex gap-5 flex-1">
-                <div className={`size-16 rounded-[22px] bg-blue-50 flex items-center justify-center text-tor-blue shadow-inner`}>
-                  <span className="material-symbols-outlined text-4xl filled-icon">shield</span>
+            <div className="flex justify-between items-start mb-6 md:mb-8 relative z-10">
+              <div className="flex gap-3 md:gap-5 flex-1">
+                <div className={`size-12 md:size-16 rounded-[18px] md:rounded-[22px] bg-blue-50 flex items-center justify-center text-tor-blue shadow-inner shrink-0`}>
+                  <span className="material-symbols-outlined text-2xl md:text-4xl filled-icon">shield</span>
                 </div>
                 <div className="flex-1">
                   {editId === team.id ? (
@@ -334,7 +334,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                       onChange={e => setEditingTeam(prev => prev ? { ...prev, name: e.target.value } : null)}
                     />
                   ) : (
-                    <h3 className="text-[28px] font-black text-slate-900 leading-tight mb-1">{team.name}</h3>
+                    <h3 className="text-xl md:text-[28px] font-black text-slate-900 leading-tight mb-1">{team.name}</h3>
                   )}
 
                   <div className="flex items-start gap-2">
@@ -368,10 +368,10 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
             </div>
 
             <div className="space-y-6 relative z-10">
-              <p className="text-[14px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-3 text-center">
+              <p className="text-xs md:text-[14px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-3 text-center">
                 GUARNIÇÃO
               </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 {(editId === team.id ? editingTeam!.members : team.members.filter(m => m.name.trim() !== '')).map((member, idx) => {
                   return (
 
@@ -471,14 +471,14 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
         </div>
 
-        <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
           {vehicles.map((vehicle) => {
             const currentVehicle = editVehicleId === vehicle.id ? editingVehicle! : vehicle;
             const oilLife = calculateOilLife(currentVehicle);
             const isUrgent = currentVehicle.odometer >= (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval);
 
             return (
-              <div key={vehicle.id} className={`space-y-8 ${vehicle.id === 'TOR-02' ? 'lg:border-l lg:border-slate-50 lg:pl-12' : ''}`}>
+              <div key={vehicle.id} className={`space-y-6 md:space-y-8 ${vehicle.id === 'TOR-02' ? 'lg:border-l lg:border-slate-50 lg:pl-12' : ''}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     {editVehicleId === vehicle.id ? (
@@ -498,21 +498,21 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                       {editVehicleId === vehicle.id ? (
                         <div className="flex flex-col gap-1">
                           <input
-                            className="bg-slate-50 border-none rounded text-lg font-black text-slate-900 p-1 w-32"
+                            className="bg-slate-50 border-none rounded text-base md:text-lg font-black text-slate-900 p-1 w-32"
                             value={editingVehicle?.model}
                             onChange={e => setEditingVehicle(prev => prev ? { ...prev, model: e.target.value } : null)}
                             placeholder="MODELO"
                           />
                           <div className="flex gap-2">
                             <input
-                              className="bg-slate-50 border-none rounded text-xs font-bold text-slate-300 p-0.5 w-16"
+                              className="bg-slate-50 border-none rounded text-[10px] md:text-xs font-bold text-slate-300 p-0.5 w-16"
                               value={editingVehicle?.year}
                               onChange={e => setEditingVehicle(prev => prev ? { ...prev, year: e.target.value } : null)}
                               placeholder="ANO"
                             />
 
                             <select
-                              className="bg-slate-100 text-slate-600 border-none rounded text-[10px] font-black p-0.5 w-24"
+                              className="bg-slate-100 text-slate-600 border-none rounded text-[9px] md:text-[10px] font-black p-0.5 w-24"
                               value={editingVehicle?.status}
                               onChange={e => setEditingVehicle(prev => prev ? { ...prev, status: e.target.value as any } : null)}
                             >
@@ -523,10 +523,10 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                         </div>
                       ) : (
                         <div className="flex flex-col">
-                          <h4 className="text-slate-900 font-black text-lg">
+                          <h4 className="text-slate-900 font-black text-base md:text-lg">
                             {vehicle.model}
-                            <span className="text-slate-300 font-bold text-sm ml-2">{vehicle.year}</span>
-                            <span className={`ml-3 px-2 py-0.5 rounded-full text-[9px] font-black ${vehicle.status === 'OPERANDO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                            <span className="text-slate-300 font-bold text-xs md:text-sm ml-2">{vehicle.year}</span>
+                            <span className={`ml-3 px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-black ${vehicle.status === 'OPERANDO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                               {vehicle.status}
                             </span>
                           </h4>
@@ -553,17 +553,17 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   {[
                     { label: 'Odômetro Atual', value: vehicle.odometer, key: 'odometer' },
                     { label: 'Próx. Troca Óleo', value: vehicle.lastOilChangeOdometer + vehicle.oilInterval, key: 'oil' },
                   ].map(item => (
-                    <div key={item.label} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">{item.label}</p>
+                    <div key={item.label} className="p-3 md:p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[8px] md:text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">{item.label}</p>
                       {editVehicleId === vehicle.id ? (
                         <input
                           type="number"
-                          className="w-full bg-white border-slate-200 rounded text-sm font-black text-slate-800 p-0.5"
+                          className="w-full bg-white border-slate-200 rounded text-xs md:text-sm font-black text-slate-800 p-0.5"
                           value={item.key === 'odometer' ? editingVehicle?.odometer : (editingVehicle?.lastOilChangeOdometer || 0) + (editingVehicle?.oilInterval || 0)}
                           onChange={e => {
                             const val = parseInt(e.target.value) || 0;
@@ -575,7 +575,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                           }}
                         />
                       ) : (
-                        <p className="text-sm font-black text-slate-800">{item.value.toLocaleString('pt-BR')} km</p>
+                        <p className="text-xs md:text-sm font-black text-slate-800">{item.value.toLocaleString('pt-BR')} km</p>
                       )}
                     </div>
                   ))}
