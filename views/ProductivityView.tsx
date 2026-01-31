@@ -131,7 +131,7 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
         <div className="flex items-center gap-2 mb-4 border-l-4 border-tor-blue pl-3">
           <h2 className="text-lg font-bold text-slate-800 uppercase tracking-wider">Apreensões</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
           {currentData.seizures.map((stat) => (
             <div key={stat.label} className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden text-center group transition-all hover:shadow-xl hover:-translate-y-1 relative">
               {isLoggedIn && stat.trend !== undefined && (
@@ -174,8 +174,8 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
             <h2 className="text-lg font-bold text-slate-800 uppercase tracking-wider">Estatísticas de Boletins</h2>
             <span className="material-symbols-outlined text-slate-300">analytics</span>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-10">
-            <div className="size-52 shrink-0 relative">
+          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+            <div className="size-44 md:size-52 shrink-0 relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -249,7 +249,7 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
 
 
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-8 gap-y-6 relative z-10 w-full">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-4 md:gap-x-8 gap-y-6 relative z-10 w-full">
           {[
             { label: 'Autos de Infr.', value: currentData.summary.autos },
             { label: 'ARVC', value: currentData.summary.arvc },
@@ -260,8 +260,10 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
           ].map((item) => (
 
             <div key={item.label} className="text-center">
-              <p className="text-[11px] font-medium text-slate-400 uppercase tracking-[0.15em] mb-1.5 opacity-90">{item.label}</p>
-              <p className="text-2xl font-black text-white">{item.value}</p>
+              <p className="text-[10px] md:text-[11px] font-medium text-slate-400 uppercase tracking-[0.1em] md:tracking-[0.15em] mb-1.5 opacity-90 leading-tight">
+                {item.label}
+              </p>
+              <p className="text-xl md:text-2xl font-black text-white">{item.value}</p>
             </div>
 
           ))}
@@ -271,7 +273,7 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
 
 
         {/* Resumo Final */}
-        <section className="mt-12 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+        <section className="mt-8 md:mt-12 bg-white rounded-[24px] md:rounded-3xl p-5 md:p-8 border border-slate-100 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-tor-blue/5 rounded-full -mr-16 -mt-16"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-6">
