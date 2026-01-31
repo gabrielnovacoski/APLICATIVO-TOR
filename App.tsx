@@ -55,6 +55,8 @@ const App: React.FC = () => {
     }
   };
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   // Estados de Data
   const now = new Date();
   const [startDate, setStartDate] = useState<Date>(new Date(now.getFullYear(), 0, 1));
@@ -170,18 +172,29 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar activeView={activeView} onViewChange={setActiveView} isLoggedIn={isLoggedIn} onLoginToggle={handleToggleLogin} />
+      <Sidebar
+        activeView={activeView}
+        onViewChange={setActiveView}
+        isLoggedIn={isLoggedIn}
+        onLoginToggle={handleToggleLogin}
+        mobileOpen={isMobileMenuOpen}
+        onMobileClose={() => setIsMobileMenuOpen(false)}
+      />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">{getViewTitle()}</h1>
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg"
+            >
+              <span className="material-symbols-outlined">menu</span>
+            </button>
+            <h1 className="text-lg md:text-xl font-bold text-slate-800 truncate">{getViewTitle()}</h1>
           </div>
 
-
-
           <div className="flex items-center gap-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">selecione o período</span>
+            <span className="hidden md:block text-[10px] font-bold text-slate-400 uppercase tracking-widest">selecione o período</span>
             <div className="relative" ref={datePickerRef}>
 
 
