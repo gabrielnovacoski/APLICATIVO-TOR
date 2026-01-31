@@ -318,7 +318,7 @@ export async function fetchSpreadsheetReports(startDate?: Date, endDate?: Date):
 
       // Soma básica de apreensões para dar um "score" ao relatório
       const drugsSum = [20, 21, 22, 23, 24, 25, 26, 27, 29].reduce((acc, col) => acc + (parseFloat(row[col]) || 0), 0);
-      const seizuresSum = [30, 31, 32, 33, 34, 36, 37].reduce((acc, col) => acc + (parseFloat(row[col]) || 0), 0);
+      const seizuresSum = [30, 31, 32, 33, 34, 36, 37, 38].reduce((acc, col) => acc + (parseFloat(row[col]) || 0), 0);
 
       return {
         id: `TOR-${row[0].split(' ')[0].replace(/\//g, '')}-${idx}`,
