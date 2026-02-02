@@ -76,15 +76,28 @@ function parseGoogleDate(dateStr: string): Date | null {
  * Helper para limpar e converter valores numéricos da planilha
  * Remove R$, pontos de milhar, e converte vírgula decimal
  */
+/**
+ * Helper para limpar e converter valores numéricos da planilha
+ * Remove R$, pontos de milhar, e converte vírgula decimal.
+ * Retorna 0 se o valor conter letras (ex: nomes, placas) para evitar falso-positivos.
+ */
 function parseSheetNumber(value: string | undefined): number {
   if (!value) return 0;
 
-  // 1. Remove tudo que NÃO for dígito, ponto, vírgula ou sinal de menos
+  // 1. Limpeza básica de prefixos comuns para ignorar na verificação de "lixo"
+  // Remove "R$", "KM", espaços
+  const textToCheck = value.replace(/(R\$|KM|\s)/gi, '');
+
+  // 2. Se sobrar alguma letra, assume que é texto (ex: nome de policial) e retorna 0
+  // Isso evita que "CB 12345" vire o número 12345
+  if (/[a-zA-Z]/.test(textToCheck)) return 0;
+
+  // 3. Remove tudo que NÃO for dígito, ponto, vírgula ou sinal de menos
   const clean = value.replace(/[^0-9,.-]/g, '');
 
   if (clean === '') return 0;
 
-  // 2. Detecção de formato baseada na presença de vírgula (comum em R$)
+  // 4. Detecção de formato baseada na presença de vírgula (comum em R$)
   if (clean.includes(',')) {
     // Formato BR (1.000,00): Remove pontos (milhar) e troca vírgula por ponto (decimal)
     // Ex: "10.000,00" -> "10000,00" -> "10000.00"
@@ -99,23 +112,48 @@ function parseSheetNumber(value: string | undefined): number {
   }
 }
 
+// Robust CSV parser that handles newlines inside quotes
 function parseCSV(csvText: string): string[][] {
-  return csvText.split('\n').map(row => {
-    const columns = [];
-    let current = '';
-    let inQuotes = false;
-    for (let char of row) {
-      if (char === '"') inQuotes = !inQuotes;
-      else if (char === ',' && !inQuotes) {
-        columns.push(current.trim().replace(/^"|"$/g, ''));
-        current = '';
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentCell = '';
+  let inQuotes = false;
+
+  // Normalize line endings to \n just in case
+  const text = csvText.replace(/\r\n/g, '\n');
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+
+    if (char === '"') {
+      // Handle escaped quotes ("") inside quoted entries
+      if (inQuotes && nextChar === '"') {
+        currentCell += '"';
+        i++; // Skip the next quote
       } else {
-        current += char;
+        inQuotes = !inQuotes;
       }
+    } else if (char === ',' && !inQuotes) {
+      currentRow.push(currentCell.trim().replace(/^"|"$/g, ''));
+      currentCell = '';
+    } else if (char === '\n' && !inQuotes) {
+      currentRow.push(currentCell.trim().replace(/^"|"$/g, ''));
+      rows.push(currentRow);
+      currentRow = [];
+      currentCell = '';
+    } else {
+      currentCell += char;
     }
-    columns.push(current.trim().replace(/^"|"$/g, ''));
-    return columns;
-  });
+  }
+
+  // Push last row if exists
+  if (currentRow.length > 0 || currentCell.length > 0) {
+    currentRow.push(currentCell.trim().replace(/^"|"$/g, ''));
+    rows.push(currentRow);
+  }
+
+  return rows;
 }
 
 export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: Date): Promise<SheetData | null> {
@@ -131,7 +169,12 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
 
     // Helper para buscar índice por texto no cabeçalho
     const findCol = (name: string, fallback: number) => {
-      const idx = header.findIndex(h => h.includes(name.toUpperCase()));
+      // 1. Tenta match exato primeiro (Evita que "PA" dê match em "PARA" na coluna de Equipe)
+      let idx = header.findIndex(h => h === name.toUpperCase());
+      if (idx !== -1) return idx;
+
+      // 2. Fallback para includes (comportamento original)
+      idx = header.findIndex(h => h.includes(name.toUpperCase()));
       return idx === -1 ? fallback : idx;
     };
 
