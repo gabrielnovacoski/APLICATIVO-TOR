@@ -72,6 +72,20 @@ function parseGoogleDate(dateStr: string): Date | null {
 }
 
 
+/**
+ * Helper para limpar e converter valores numéricos da planilha
+ * Remove R$, pontos de milhar, e converte vírgula decimal
+ */
+function parseSheetNumber(value: string | undefined): number {
+  if (!value) return 0;
+  // Remove tudo que não for dígito, sinal de menos ou vírgula
+  const clean = value.replace(/[^0-9,-]/g, '');
+  // Substitui vírgula por ponto para o JS entender
+  const normalized = clean.replace(',', '.');
+  const parsed = parseFloat(normalized);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
 function parseCSV(csvText: string): string[][] {
   return csvText.split('\n').map(row => {
     const columns = [];
@@ -100,46 +114,50 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
     const rows = parseCSV(csvText);
 
 
-    // Remove cabeçalho
-    const dataRows = rows.slice(1).filter(r => r.length > 1 && r[0] !== '');
-    console.log(`DEBUG: Total de linhas de dados: ${dataRows.length}`);
+    const header = rows[0].map(h => h.toUpperCase().trim());
 
+    // Helper para buscar índice por texto no cabeçalho
+    const findCol = (name: string, fallback: number) => {
+      const idx = header.findIndex(h => h.includes(name.toUpperCase()));
+      return idx === -1 ? fallback : idx;
+    };
 
-    // Índices das colunas (0-based) - Ajustados conforme debug do console
+    // Mapeamento Dinâmico de Colunas
     const COL = {
       TIMESTAMP: 0,
-      PA: 8,
-      TC: 9,
-      COP: 10,
-      BO: 11,
-      ACIDENTES: 11, // BO e Acidentes estão na mesma coluna no seu relato
-      AUTOS: 12,
-      ARVC: 13,
-      RETENCOES: 14,
-      RECUSA_IGP: 15,
-      VEIC_ABORDADOS: 16,
-      PESS_ABORDADAS: 17,
-      MANDADOS: 18,
-      PESS_DETIDAS: 19,
-      MACONHA: 20,
-      HAXIXE: 21,
-      SKANK: 22,
-      COCAINA: 23,
-      ECSTASY: 24,
-      LSD: 25,
-      MDMA: 26,
-      CRACK: 27,
-
-      OUTRAS_DROGAS: 28,
-      ARMAS: 30,
-      MUNICOES: 31,
-      VEIC_RECUP: 32,
-      DINHEIRO: 33,
-      MOEDA_ESTRANG: 34,
-      MERC_ILEGAIS: 36,
-      CIGARROS: 37,
-      MULTA_ADM: 39
+      PA: findCol('PA', 8),
+      TC: findCol('TC', 9),
+      COP: findCol('COP', 10),
+      BO: findCol('BO E ACIDENTES', 11),
+      ACIDENTES: findCol('BO E ACIDENTES', 11),
+      AUTOS: findCol('AUTOS DE INFRAÇÕES', 12),
+      ARVC: findCol('ARVC', 13),
+      RETENCOES: findCol('RETENÇÕES DE CLA', 14),
+      RECUSA_IGP: findCol('RECUSA IGP', 15),
+      VEIC_ABORDADOS: findCol('VEÍCULOS ABORDADOS', 16),
+      PESS_ABORDADAS: findCol('PESSOAS ABORDADOS', 17),
+      MANDADOS: findCol('CUMPRIMENTOS DE MANDADOS', 18),
+      PESS_DETIDAS: findCol('PESSOAS DETIDAS', 19),
+      MACONHA: findCol('MACONHA', 20),
+      HAXIXE: findCol('HAXIXE', 21),
+      SKANK: findCol('SKANK', 22),
+      COCAINA: findCol('COCAÍNA', 23),
+      ECSTASY: findCol('ECSTASY', 24),
+      LSD: findCol('LSD', 25),
+      MDMA: findCol('MDMA', 26),
+      CRACK: findCol('CRACK', 27),
+      OUTRAS_DROGAS: findCol('OUTRAS DROGAS', 28),
+      ARMAS: findCol('ARMAS', 30),
+      MUNICOES: findCol('MUNIÇÕES', 31),
+      VEIC_RECUP: findCol('VEÍCULOS RECUPERADOS', 32),
+      DINHEIRO: findCol('DINHEIRO - R$', 33),
+      MOEDA_ESTRANG: findCol('MOEDA ESTRANGEIRA', 34),
+      MERC_ILEGAIS: findCol('MERCADORIAS ILEGAIS', 36),
+      CIGARROS: findCol('CIGARROS', 37),
+      MULTA_ADM: findCol('MULTA ADMINISTRATIVA', 39)
     };
+
+    const dataRows = rows.slice(1).filter(r => r.length > 1 && r[0] !== '');
 
 
 
@@ -177,9 +195,7 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
     // Função para somar valores de uma coluna em um conjunto de linhas
     const sumColsInRange = (rows: string[][], index: number) => {
       return rows.reduce((acc, row) => {
-        const rawVal = row[index];
-        const val = parseFloat(rawVal?.replace(/\./g, '').replace(',', '.') || '0');
-        return acc + (isNaN(val) ? 0 : val);
+        return acc + parseSheetNumber(row[index]);
       }, 0);
     };
 
@@ -193,8 +209,7 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
         const key = `${months[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
         // Somamos Boletins como métrica de volume na timeline
         const volume = [COL.PA, COL.TC, COL.COP, COL.BO].reduce((acc, c) => {
-          const v = parseFloat(row[c]?.replace(/\./g, '').replace(',', '.') || '0');
-          return acc + (isNaN(v) ? 0 : v);
+          return acc + parseSheetNumber(row[c]);
         }, 0);
         timelineMap[key] = (timelineMap[key] || 0) + volume;
       }
@@ -301,6 +316,31 @@ export async function fetchSpreadsheetReports(startDate?: Date, endDate?: Date):
 
 
     const dataRows = rows.slice(1).filter(r => r.length > 1 && r[0] !== '');
+    const header = rows[0].map(h => h.toUpperCase().trim());
+    const findCol = (name: string, fallback: number) => {
+      const idx = header.findIndex(h => h.includes(name.toUpperCase()));
+      return idx === -1 ? fallback : idx;
+    };
+
+    const COL = {
+      MACONHA: findCol('MACONHA', 20),
+      HAXIXE: findCol('HAXIXE', 21),
+      SKANK: findCol('SKANK', 22),
+      COCAINA: findCol('COCAÍNA', 23),
+      ECSTASY: findCol('ECSTASY', 24),
+      LSD: findCol('LSD', 25),
+      MDMA: findCol('MDMA', 26),
+      CRACK: findCol('CRACK', 27),
+      OUTRAS_DROGAS: findCol('OUTRAS DROGAS', 28),
+      ARMAS: findCol('ARMAS', 30),
+      MUNICOES: findCol('MUNIÇÕES', 31),
+      VEIC_RECUP: findCol('VEÍCULOS RECUPERADOS', 32),
+      DINHEIRO: findCol('DINHEIRO - R$', 33),
+      MOEDA_ESTRANG: findCol('MOEDA ESTRANGEIRA', 34),
+      MERC_ILEGAIS: findCol('MERCADORIAS ILEGAIS', 36),
+      CIGARROS: findCol('CIGARROS', 37),
+      MULTA_ADM: findCol('MULTA ADMINISTRATIVA', 39)
+    };
 
     // Mapeamento simplificado para a lista de relatórios
     const reports: DailyReport[] = dataRows.map((row, idx) => {
@@ -317,8 +357,15 @@ export async function fetchSpreadsheetReports(startDate?: Date, endDate?: Date):
       }
 
       // Soma básica de apreensões para dar um "score" ao relatório
-      const drugsSum = [20, 21, 22, 23, 24, 25, 26, 27, 28].reduce((acc, col) => acc + (parseFloat(row[col]) || 0), 0);
-      const seizuresSum = [30, 31, 32, 33, 34, 36, 37, 39].reduce((acc, col) => acc + (parseFloat(row[col]) || 0), 0);
+      const drugsSum = [
+        COL.MACONHA, COL.HAXIXE, COL.SKANK, COL.COCAINA,
+        COL.ECSTASY, COL.LSD, COL.MDMA, COL.CRACK, COL.OUTRAS_DROGAS
+      ].reduce((acc, col) => acc + parseSheetNumber(row[col]), 0);
+
+      const seizuresSum = [
+        COL.ARMAS, COL.MUNICOES, COL.VEIC_RECUP, COL.DINHEIRO,
+        COL.MOEDA_ESTRANG, COL.MERC_ILEGAIS, COL.CIGARROS, COL.MULTA_ADM
+      ].reduce((acc, col) => acc + parseSheetNumber(row[col]), 0);
 
       return {
         id: `TOR-${row[0].split(' ')[0].replace(/\//g, '')}-${idx}`,
@@ -367,11 +414,8 @@ export async function fetchLatestVehicleKm(vehicleId: string): Promise<number | 
       // Verifica se a célula da vtr contém o ID (ex: "TOR 0003")
       if (vtrEntry && vtrEntry.toLowerCase().includes(vehicleId.toLowerCase())) {
         const rawKm = row[kmCol];
-        if (rawKm) {
-          // Trata formatos: "12345", "12.345" ou "12,345"
-          const kmValue = parseFloat(rawKm.replace(/\./g, '').replace(',', '.'));
-          if (!isNaN(kmValue)) return kmValue;
-        }
+        const kmValue = parseSheetNumber(rawKm);
+        if (kmValue > 0) return kmValue;
       }
     }
 
@@ -381,4 +425,5 @@ export async function fetchLatestVehicleKm(vehicleId: string): Promise<number | 
     return null;
   }
 }
+
 
