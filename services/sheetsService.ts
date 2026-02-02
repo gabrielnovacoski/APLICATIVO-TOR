@@ -78,12 +78,25 @@ function parseGoogleDate(dateStr: string): Date | null {
  */
 function parseSheetNumber(value: string | undefined): number {
   if (!value) return 0;
-  // Remove tudo que não for dígito, sinal de menos ou vírgula
-  const clean = value.replace(/[^0-9,-]/g, '');
-  // Substitui vírgula por ponto para o JS entender
-  const normalized = clean.replace(',', '.');
-  const parsed = parseFloat(normalized);
-  return isNaN(parsed) ? 0 : parsed;
+
+  // 1. Remove tudo que NÃO for dígito, ponto, vírgula ou sinal de menos
+  const clean = value.replace(/[^0-9,.-]/g, '');
+
+  if (clean === '') return 0;
+
+  // 2. Detecção de formato baseada na presença de vírgula (comum em R$)
+  if (clean.includes(',')) {
+    // Formato BR (1.000,00): Remove pontos (milhar) e troca vírgula por ponto (decimal)
+    // Ex: "10.000,00" -> "10000,00" -> "10000.00"
+    const normalized = clean.replace(/\./g, '').replace(',', '.');
+    const parsed = parseFloat(normalized);
+    return isNaN(parsed) ? 0 : parsed;
+  } else {
+    // Formato US ou sem separador de milhar (528.00 ou 528)
+    // Mantém o ponto como decimal se existir
+    const parsed = parseFloat(clean);
+    return isNaN(parsed) ? 0 : parsed;
+  }
 }
 
 function parseCSV(csvText: string): string[][] {
