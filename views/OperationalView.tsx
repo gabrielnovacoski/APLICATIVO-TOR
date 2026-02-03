@@ -114,11 +114,22 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
     // Buscar Viaturas
     const { data: vData } = await supabase.from('vehicles').select('*');
     if (vData && vData.length > 0) {
-      setVehicles(vData.map(v => ({
+      const mappedVehicles = vData.map(v => ({
         ...v,
         oilInterval: v.oil_interval,
         lastOilChangeOdometer: v.last_oil_change_odometer
-      })));
+      }));
+
+      // Ordenação fixa: TOR 0003 em primeiro, TOR 0004 em segundo
+      const sortedVehicles = mappedVehicles.sort((a, b) => {
+        if (a.id === 'TOR 0003') return -1;
+        if (b.id === 'TOR 0003') return 1;
+        if (a.id === 'TOR 0004') return -1;
+        if (b.id === 'TOR 0004') return 1;
+        return a.id.localeCompare(b.id);
+      });
+
+      setVehicles(sortedVehicles);
     } else {
       setVehicles(initialVehicles);
       await supabase.from('vehicles').upsert(initialVehicles.map(v => ({
@@ -197,7 +208,17 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
       }
       return v;
     }));
-    setVehicles(updatedVehicles);
+
+    // Re-ordenar após atualização
+    const sortedUpdated = updatedVehicles.sort((a, b) => {
+      if (a.id === 'TOR 0003') return -1;
+      if (b.id === 'TOR 0003') return 1;
+      if (a.id === 'TOR 0004') return -1;
+      if (b.id === 'TOR 0004') return 1;
+      return a.id.localeCompare(b.id);
+    });
+
+    setVehicles(sortedUpdated);
     setIsSyncing(false);
   };
 
@@ -271,7 +292,15 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         if (editingVehicle.id !== editVehicleId) {
           fetchData();
         } else {
-          setVehicles(vehicles.map(v => v.id === editVehicleId ? editingVehicle : v));
+          const newVehicles = vehicles.map(v => v.id === editVehicleId ? editingVehicle : v);
+          const sortedNew = newVehicles.sort((a, b) => {
+            if (a.id === 'TOR 0003') return -1;
+            if (b.id === 'TOR 0003') return 1;
+            if (a.id === 'TOR 0004') return -1;
+            if (b.id === 'TOR 0004') return 1;
+            return a.id.localeCompare(b.id);
+          });
+          setVehicles(sortedNew);
         }
         setEditVehicleId(null);
         setEditingVehicle(null);
@@ -600,12 +629,12 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                       <p className="text-[11px] font-black text-red-600 uppercase tracking-widest animate-flash-red">
                         ⚠️ TROCAR DE ÓLEO URGENTE ⚠️
                       </p>
-                      <p className="text-[8px] text-red-500 font-bold uppercase tracking-tighter">
+                      <p className="text-[11px] text-red-500 font-black uppercase tracking-tighter">
                         Vencido por {(currentVehicle.odometer - (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval)).toLocaleString('pt-BR')} km
                       </p>
                     </div>
                   ) : (
-                    <p className="text-[8px] text-slate-400 font-bold uppercase text-center tracking-tighter">
+                    <p className="text-[11px] text-slate-500 font-bold uppercase text-center tracking-tighter">
                       {Math.max(0, (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval) - currentVehicle.odometer).toLocaleString('pt-BR')} km restantes para troca
                     </p>
                   )}

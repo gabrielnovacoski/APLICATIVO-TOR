@@ -13,7 +13,7 @@ const graduations = ['SOLDADO', 'CABO', '3º SGT', '2º SGT', '1º SGT', 'SUB TE
 
 const SettingsView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'system' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'system' | 'security'>(isLoggedIn ? 'profile' : 'system');
   const [loading, setLoading] = useState(true);
   const [personnelList, setPersonnelList] = useState<Personnel[]>([]);
   const [newPerson, setNewPerson] = useState<Omit<Personnel, 'id'>>({ name: '', graduation: 'SOLDADO' });
@@ -85,10 +85,10 @@ const SettingsView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         {/* Navigation Sidebar for Settings */}
         <div className="w-full md:w-64 shrink-0 space-y-2">
           {[
-            { id: 'profile', label: 'Cadastro do Efetivo', icon: 'badge' },
-            { id: 'system', label: 'Preferências do Sistema', icon: 'settings_suggest' },
-            { id: 'security', label: 'Segurança e Acesso', icon: 'lock' },
-          ].map((tab) => (
+            { id: 'profile', label: 'Cadastro do Efetivo', icon: 'badge', admin: true },
+            { id: 'system', label: 'Preferências do Sistema', icon: 'settings_suggest', admin: false },
+            { id: 'security', label: 'Segurança e Acesso', icon: 'lock', admin: true },
+          ].filter(tab => isLoggedIn || !tab.admin).map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
