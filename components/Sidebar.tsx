@@ -78,19 +78,34 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, isLoggedIn,
 
         <nav className="flex-1 p-4 space-y-1.5 mt-4 overflow-y-auto">
           {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleItemClick(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${activeView === item.id
-                ? 'bg-tor-blue text-white font-bold shadow-lg shadow-tor-blue/30 ring-1 ring-white/10'
-                : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                }`}
-            >
-              <span className={`material-symbols-outlined text-xl ${activeView === item.id ? 'filled-icon' : ''}`}>
-                {item.icon}
-              </span>
-              <span className="text-sm tracking-tight">{item.label}</span>
-            </button>
+            <React.Fragment key={item.id}>
+              <button
+                onClick={() => handleItemClick(item.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${activeView === item.id
+                  ? 'bg-tor-blue text-white font-bold shadow-lg shadow-tor-blue/30 ring-1 ring-white/10'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                  }`}
+              >
+                <span className={`material-symbols-outlined text-xl ${activeView === item.id ? 'filled-icon' : ''}`}>
+                  {item.icon}
+                </span>
+                <span className="text-sm tracking-tight">{item.label}</span>
+              </button>
+
+              {item.id === ViewType.OPERATIONAL && (
+                <a
+                  href="https://docs.google.com/forms/d/e/1FAIpQLSeaa0GqlVfumLJacwGmfF_YBNLwJtnGSCgSvIroqxygmO9PIg/viewform"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-slate-400 hover:bg-white/5 hover:text-white group"
+                >
+                  <span className="material-symbols-outlined text-xl group-hover:text-yellow-500 transition-colors">
+                    edit_note
+                  </span>
+                  <span className="text-sm tracking-tight">Preencher Dados</span>
+                </a>
+              )}
+            </React.Fragment>
           ))}
         </nav>
 
