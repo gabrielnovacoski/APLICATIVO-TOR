@@ -511,7 +511,9 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
           {vehicles.map((vehicle) => {
             const currentVehicle = editVehicleId === vehicle.id ? editingVehicle! : vehicle;
             const oilLife = calculateOilLife(currentVehicle);
-            const isUrgent = currentVehicle.odometer >= (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval);
+            const nextChange = (currentVehicle.lastOilChangeOdometer || 0) + (currentVehicle.oilInterval || 0);
+            const remainingKm = nextChange - (currentVehicle.odometer || 0);
+            const isUrgent = remainingKm <= 500;
 
             return (
               <div key={vehicle.id} className={`space-y-6 md:space-y-8 ${vehicle.id === 'TOR-02' ? 'lg:border-l lg:border-slate-50 lg:pl-12' : ''}`}>
@@ -637,7 +639,10 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                         ⚠️ TROCAR DE ÓLEO URGENTE ⚠️
                       </p>
                       <p className="text-[11px] text-red-500 font-black uppercase tracking-tighter">
-                        Vencido por {(currentVehicle.odometer - (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval)).toLocaleString('pt-BR')} km
+                        {remainingKm <= 0
+                          ? `Vencido por ${Math.abs(remainingKm).toLocaleString('pt-BR')} km`
+                          : `Faltam ${remainingKm.toLocaleString('pt-BR')} km para a troca`
+                        }
                       </p>
                     </div>
                   ) : (
