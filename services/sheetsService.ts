@@ -105,8 +105,16 @@ function parseSheetNumber(value: string | undefined): number {
     const parsed = parseFloat(normalized);
     return isNaN(parsed) ? 0 : parsed;
   } else {
-    // Formato US ou sem separador de milhar (528.00 ou 528)
-    // Mantém o ponto como decimal se existir
+    // 5. Sem vírgula, mas com ponto. Tenta inferir se é milhar (150.000) ou decimal (1.5)
+    if (clean.includes('.')) {
+      const parts = clean.split('.');
+      // Se a última parte tem exatamente 3 dígitos, assume que são milhares (Ex: 100.000 ou 1.234)
+      if (parts[parts.length - 1].length === 3) {
+        const normalized = clean.replace(/\./g, ''); // Remove pontos
+        return parseFloat(normalized);
+      }
+    }
+    // Caso contrário (ex: 1.5 ou 100), parse normal (US/Decimal)
     const parsed = parseFloat(clean);
     return isNaN(parsed) ? 0 : parsed;
   }
