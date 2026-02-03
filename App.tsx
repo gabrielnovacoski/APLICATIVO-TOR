@@ -237,173 +237,174 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="hidden md:block text-[10px] font-bold text-slate-400 uppercase tracking-widest">selecione o período</span>
-            <div className="relative" ref={datePickerRef}>
+            {activeView === ViewType.PRODUCTIVITY && (
+              <>
+                <span className="hidden md:block text-[10px] font-bold text-slate-400 uppercase tracking-widest">selecione o período</span>
+                <div className="relative" ref={datePickerRef}>
 
+                  <button
+                    onClick={() => setShowDatePicker(!showDatePicker)}
+                    className="flex items-center gap-3 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg border border-slate-200 transition-all text-slate-700"
+                  >
+                    <span className="material-symbols-outlined text-slate-500 text-sm">calendar_month</span>
+                    <span className="text-xs font-bold uppercase tracking-tight">
+                      {formatMonthYear(startDate)}
+                    </span>
+                    <span className="material-symbols-outlined text-slate-400 text-sm">expand_more</span>
+                  </button>
 
+                  {showDatePicker && (
+                    <div className="absolute top-full right-0 mt-2 w-[92vw] md:w-[520px] max-w-[520px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-slate-200 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 select-none">
 
-              <button
-                onClick={() => setShowDatePicker(!showDatePicker)}
-                className="flex items-center gap-3 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg border border-slate-200 transition-all text-slate-700"
-              >
-                <span className="material-symbols-outlined text-slate-500 text-sm">calendar_month</span>
-                <span className="text-xs font-bold uppercase tracking-tight">
-                  {formatMonthYear(startDate)}
-                </span>
-                <span className="material-symbols-outlined text-slate-400 text-sm">expand_more</span>
-              </button>
+                      <div className="bg-tor-dark p-4 flex justify-between items-center border-b border-slate-700">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Período dos Dados</span>
+                      </div>
 
-              {showDatePicker && (
-                <div className="absolute top-full right-0 mt-2 w-[92vw] md:w-[520px] max-w-[520px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-slate-200 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 select-none">
+                      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8 bg-white h-[60vh] md:h-auto overflow-y-auto md:overflow-visible">
+                        <div className="space-y-4">
+                          <div className="text-center">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Data de início</p>
 
-                  <div className="bg-tor-dark p-4 flex justify-between items-center border-b border-slate-700">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Período dos Dados</span>
-                  </div>
+                            <div className="flex items-center justify-between px-2 bg-slate-50 rounded-xl py-1">
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setViewMonthStart(changeMonth(viewMonthStart, -12))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">keyboard_double_arrow_left</span></button>
+                                <button onClick={() => setViewMonthStart(changeMonth(viewMonthStart, -1))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">chevron_left</span></button>
+                              </div>
 
-                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8 bg-white h-[60vh] md:h-auto overflow-y-auto md:overflow-visible">
-                    <div className="space-y-4">
-                      <div className="text-center">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Data de início</p>
+                              <div className="flex items-center gap-1 font-black text-slate-700 text-xs">
+                                <select
+                                  value={viewMonthStart.getMonth()}
+                                  onChange={(e) => setViewMonthStart(new Date(viewMonthStart.getFullYear(), parseInt(e.target.value), 1))}
+                                  className="bg-transparent border-none p-0 pr-6 text-[10px] font-black uppercase focus:ring-0 cursor-pointer"
+                                >
+                                  {['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'].map((m, i) => (
+                                    <option key={i} value={i}>{m}</option>
+                                  ))}
+                                </select>
+                                <select
+                                  value={viewMonthStart.getFullYear()}
+                                  onChange={(e) => setViewMonthStart(new Date(parseInt(e.target.value), viewMonthStart.getMonth(), 1))}
+                                  className="bg-transparent border-none p-0 pr-6 text-[10px] font-black uppercase focus:ring-0 cursor-pointer"
+                                >
+                                  {Array.from({ length: 20 }).map((_, i) => {
+                                    const y = new Date().getFullYear() - 10 + i;
+                                    return <option key={y} value={y}>{y}</option>;
+                                  })}
+                                </select>
+                              </div>
 
-                        <div className="flex items-center justify-between px-2 bg-slate-50 rounded-xl py-1">
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => setViewMonthStart(changeMonth(viewMonthStart, -12))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">keyboard_double_arrow_left</span></button>
-                            <button onClick={() => setViewMonthStart(changeMonth(viewMonthStart, -1))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">chevron_left</span></button>
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setViewMonthStart(changeMonth(viewMonthStart, 1))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">chevron_right</span></button>
+                                <button onClick={() => setViewMonthStart(changeMonth(viewMonthStart, 12))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">keyboard_double_arrow_right</span></button>
+                              </div>
+                            </div>
+
                           </div>
+                          <div className="grid grid-cols-7 gap-1 text-center">
 
-                          <div className="flex items-center gap-1 font-black text-slate-700 text-xs">
-                            <select
-                              value={viewMonthStart.getMonth()}
-                              onChange={(e) => setViewMonthStart(new Date(viewMonthStart.getFullYear(), parseInt(e.target.value), 1))}
-                              className="bg-transparent border-none p-0 pr-6 text-[10px] font-black uppercase focus:ring-0 cursor-pointer"
-                            >
-                              {['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'].map((m, i) => (
-                                <option key={i} value={i}>{m}</option>
-                              ))}
-                            </select>
-                            <select
-                              value={viewMonthStart.getFullYear()}
-                              onChange={(e) => setViewMonthStart(new Date(parseInt(e.target.value), viewMonthStart.getMonth(), 1))}
-                              className="bg-transparent border-none p-0 pr-6 text-[10px] font-black uppercase focus:ring-0 cursor-pointer"
-                            >
-                              {Array.from({ length: 20 }).map((_, i) => {
-                                const y = new Date().getFullYear() - 10 + i;
-                                return <option key={y} value={y}>{y}</option>;
-                              })}
-                            </select>
-                          </div>
+                            {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, idx) => <span key={`${d}-${idx}`} className="text-[10px] font-bold text-slate-300 py-1">{d}</span>)}
 
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => setViewMonthStart(changeMonth(viewMonthStart, 1))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">chevron_right</span></button>
-                            <button onClick={() => setViewMonthStart(changeMonth(viewMonthStart, 12))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">keyboard_double_arrow_right</span></button>
+                            {/* Empty cells for offset */}
+                            {Array.from({ length: new Date(viewMonthStart.getFullYear(), viewMonthStart.getMonth(), 1).getDay() }).map((_, i) => (
+                              <span key={`empty-${i}`} />
+                            ))}
+
+                            {Array.from({ length: getDaysInMonth(viewMonthStart.getFullYear(), viewMonthStart.getMonth()) }).map((_, i) => {
+                              const day = i + 1;
+                              const isSelected = startDate.getDate() === day && startDate.getMonth() === viewMonthStart.getMonth() && startDate.getFullYear() === viewMonthStart.getFullYear();
+                              return (
+                                <button key={i} onClick={() => setStartDate(new Date(viewMonthStart.getFullYear(), viewMonthStart.getMonth(), day))} className={`text-[10px] font-bold py-2 rounded-lg transition-colors ${isSelected ? 'bg-tor-blue text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}>{day}</button>
+                              );
+                            })}
                           </div>
                         </div>
+                        <div className="space-y-4">
+                          <div className="text-center">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Data de término</p>
 
-                      </div>
-                      <div className="grid grid-cols-7 gap-1 text-center">
+                            <div className="flex items-center justify-between px-2 bg-slate-50 rounded-xl py-1">
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setViewMonthEnd(changeMonth(viewMonthEnd, -12))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">keyboard_double_arrow_left</span></button>
+                                <button onClick={() => setViewMonthEnd(changeMonth(viewMonthEnd, -1))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">chevron_left</span></button>
+                              </div>
 
-                        {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, idx) => <span key={`${d}-${idx}`} className="text-[10px] font-bold text-slate-300 py-1">{d}</span>)}
+                              <div className="flex items-center gap-1 font-black text-slate-700 text-xs">
+                                <select
+                                  value={viewMonthEnd.getMonth()}
+                                  onChange={(e) => setViewMonthEnd(new Date(viewMonthEnd.getFullYear(), parseInt(e.target.value), 1))}
+                                  className="bg-transparent border-none p-0 pr-6 text-[10px] font-black uppercase focus:ring-0 cursor-pointer"
+                                >
+                                  {['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'].map((m, i) => (
+                                    <option key={i} value={i}>{m}</option>
+                                  ))}
+                                </select>
+                                <select
+                                  value={viewMonthEnd.getFullYear()}
+                                  onChange={(e) => setViewMonthEnd(new Date(parseInt(e.target.value), viewMonthEnd.getMonth(), 1))}
+                                  className="bg-transparent border-none p-0 pr-6 text-[10px] font-black uppercase focus:ring-0 cursor-pointer"
+                                >
+                                  {Array.from({ length: 20 }).map((_, i) => {
+                                    const y = new Date().getFullYear() - 10 + i;
+                                    return <option key={y} value={y}>{y}</option>;
+                                  })}
+                                </select>
+                              </div>
 
-                        {/* Empty cells for offset */}
-                        {Array.from({ length: new Date(viewMonthStart.getFullYear(), viewMonthStart.getMonth(), 1).getDay() }).map((_, i) => (
-                          <span key={`empty-${i}`} />
-                        ))}
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setViewMonthEnd(changeMonth(viewMonthEnd, 1))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">chevron_right</span></button>
+                                <button onClick={() => setViewMonthEnd(changeMonth(viewMonthEnd, 12))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">keyboard_double_arrow_right</span></button>
+                              </div>
+                            </div>
 
-                        {Array.from({ length: getDaysInMonth(viewMonthStart.getFullYear(), viewMonthStart.getMonth()) }).map((_, i) => {
-                          const day = i + 1;
-                          const isSelected = startDate.getDate() === day && startDate.getMonth() === viewMonthStart.getMonth() && startDate.getFullYear() === viewMonthStart.getFullYear();
-                          return (
-                            <button key={i} onClick={() => setStartDate(new Date(viewMonthStart.getFullYear(), viewMonthStart.getMonth(), day))} className={`text-[10px] font-bold py-2 rounded-lg transition-colors ${isSelected ? 'bg-tor-blue text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}>{day}</button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="text-center">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Data de término</p>
-
-                        <div className="flex items-center justify-between px-2 bg-slate-50 rounded-xl py-1">
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => setViewMonthEnd(changeMonth(viewMonthEnd, -12))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">keyboard_double_arrow_left</span></button>
-                            <button onClick={() => setViewMonthEnd(changeMonth(viewMonthEnd, -1))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">chevron_left</span></button>
                           </div>
+                          <div className="grid grid-cols-7 gap-1 text-center">
 
-                          <div className="flex items-center gap-1 font-black text-slate-700 text-xs">
-                            <select
-                              value={viewMonthEnd.getMonth()}
-                              onChange={(e) => setViewMonthEnd(new Date(viewMonthEnd.getFullYear(), parseInt(e.target.value), 1))}
-                              className="bg-transparent border-none p-0 pr-6 text-[10px] font-black uppercase focus:ring-0 cursor-pointer"
-                            >
-                              {['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'].map((m, i) => (
-                                <option key={i} value={i}>{m}</option>
-                              ))}
-                            </select>
-                            <select
-                              value={viewMonthEnd.getFullYear()}
-                              onChange={(e) => setViewMonthEnd(new Date(parseInt(e.target.value), viewMonthEnd.getMonth(), 1))}
-                              className="bg-transparent border-none p-0 pr-6 text-[10px] font-black uppercase focus:ring-0 cursor-pointer"
-                            >
-                              {Array.from({ length: 20 }).map((_, i) => {
-                                const y = new Date().getFullYear() - 10 + i;
-                                return <option key={y} value={y}>{y}</option>;
-                              })}
-                            </select>
-                          </div>
+                            {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, idx) => <span key={`${d}-${idx}`} className="text-[10px] font-bold text-slate-300 py-1">{d}</span>)}
 
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => setViewMonthEnd(changeMonth(viewMonthEnd, 1))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">chevron_right</span></button>
-                            <button onClick={() => setViewMonthEnd(changeMonth(viewMonthEnd, 12))} className="text-slate-400 hover:text-tor-blue p-1 rounded-lg hover:bg-white transition-colors"><span className="material-symbols-outlined text-lg">keyboard_double_arrow_right</span></button>
+                            {/* Empty cells for offset */}
+                            {Array.from({ length: new Date(viewMonthEnd.getFullYear(), viewMonthEnd.getMonth(), 1).getDay() }).map((_, i) => (
+                              <span key={`empty-${i}`} />
+                            ))}
+
+                            {Array.from({ length: getDaysInMonth(viewMonthEnd.getFullYear(), viewMonthEnd.getMonth()) }).map((_, i) => {
+                              const day = i + 1;
+                              const isSelected = endDate.getDate() === day && endDate.getMonth() === viewMonthEnd.getMonth() && endDate.getFullYear() === viewMonthEnd.getFullYear();
+                              return (
+                                <button key={i} onClick={() => setEndDate(new Date(viewMonthEnd.getFullYear(), viewMonthEnd.getMonth(), day))} className={`text-[10px] font-bold py-2 rounded-lg transition-colors ${isSelected ? 'bg-tor-blue text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}>{day}</button>
+                              );
+                            })}
                           </div>
                         </div>
-
                       </div>
-                      <div className="grid grid-cols-7 gap-1 text-center">
 
-                        {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, idx) => <span key={`${d}-${idx}`} className="text-[10px] font-bold text-slate-300 py-1">{d}</span>)}
-
-                        {/* Empty cells for offset */}
-                        {Array.from({ length: new Date(viewMonthEnd.getFullYear(), viewMonthEnd.getMonth(), 1).getDay() }).map((_, i) => (
-                          <span key={`empty-${i}`} />
-                        ))}
-
-                        {Array.from({ length: getDaysInMonth(viewMonthEnd.getFullYear(), viewMonthEnd.getMonth()) }).map((_, i) => {
-                          const day = i + 1;
-                          const isSelected = endDate.getDate() === day && endDate.getMonth() === viewMonthEnd.getMonth() && endDate.getFullYear() === viewMonthEnd.getFullYear();
-                          return (
-                            <button key={i} onClick={() => setEndDate(new Date(viewMonthEnd.getFullYear(), viewMonthEnd.getMonth(), day))} className={`text-[10px] font-bold py-2 rounded-lg transition-colors ${isSelected ? 'bg-tor-blue text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}>{day}</button>
-                          );
-                        })}
+                      <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-center items-center">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Os dados serão atualizados ao clicar num dia acima</p>
                       </div>
+
                     </div>
-                  </div>
-
-                  <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-center items-center">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Os dados serão atualizados ao clicar num dia acima</p>
-                  </div>
-
+                  )}
                 </div>
-              )}
-            </div>
 
-            <button
-              onClick={handleAiInsight}
-              className="flex items-center gap-2 bg-tor-blue/10 text-tor-blue hover:bg-tor-blue/20 px-4 py-2 rounded-lg border border-tor-blue/20 transition-all group"
-            >
-              <span className={`material-symbols-outlined text-sm ${isGeneratingAi ? 'animate-spin' : 'filled-icon'}`}>auto_awesome</span>
-              <span className="hidden md:block text-xs font-bold uppercase tracking-tight">Análise IA</span>
-            </button>
+                <button
+                  onClick={handleAiInsight}
+                  className="flex items-center gap-2 bg-tor-blue/10 text-tor-blue hover:bg-tor-blue/20 px-4 py-2 rounded-lg border border-tor-blue/20 transition-all group"
+                >
+                  <span className={`material-symbols-outlined text-sm ${isGeneratingAi ? 'animate-spin' : 'filled-icon'}`}>auto_awesome</span>
+                  <span className="hidden md:block text-xs font-bold uppercase tracking-tight">Análise IA</span>
+                </button>
 
-            <button
-              onClick={handleDownloadPdf}
-              disabled={isExporting}
-              className={`${isExporting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-800'} bg-tor-dark text-white p-2 rounded-lg transition-colors shadow-lg shadow-tor-dark/10 flex items-center justify-center`}
-              title="Baixar Relatório em PDF"
-            >
-              <span className={`material-symbols-outlined text-sm ${isExporting ? 'animate-spin' : ''}`}>
-                {isExporting ? 'sync' : 'download'}
-              </span>
-            </button>
-
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={isExporting}
+                  className={`${isExporting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-800'} bg-tor-dark text-white p-2 rounded-lg transition-colors shadow-lg shadow-tor-dark/10 flex items-center justify-center`}
+                  title="Baixar Relatório em PDF"
+                >
+                  <span className={`material-symbols-outlined text-sm ${isExporting ? 'animate-spin' : ''}`}>
+                    {isExporting ? 'sync' : 'download'}
+                  </span>
+                </button>
+              </>
+            )}
           </div>
         </header>
 
