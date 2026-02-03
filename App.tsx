@@ -8,6 +8,7 @@ import SettingsView from './views/SettingsView';
 import { ViewType } from './types';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { getDashboardInsights } from './services/geminiService';
 
 
 
@@ -23,6 +24,9 @@ const App: React.FC = () => {
   const datePickerRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [aiInsight, setAiInsight] = useState<string>('');
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
 
@@ -134,6 +138,15 @@ const App: React.FC = () => {
     }
   };
 
+  const handleAiInsight = useCallback(async () => {
+    setIsGeneratingAi(true);
+    setShowAiModal(true);
+    const summary = `Relatório de Produtividade TOR - Período: ${startDate.toLocaleDateString()} a ${endDate.toLocaleDateString()}`;
+    const insight = await getDashboardInsights(summary);
+    setAiInsight(insight);
+    setIsGeneratingAi(false);
+  }, [startDate, endDate]);
+
 
 
 
@@ -144,6 +157,7 @@ const App: React.FC = () => {
     switch (activeView) {
 
       case ViewType.PRODUCTIVITY: return <ProductivityView startDate={startDate} endDate={endDate} isLoggedIn={isLoggedIn} />;
+      case ViewType.REPORTS: return <ReportsView startDate={startDate} endDate={endDate} />;
       case ViewType.OPERATIONAL: return <OperationalView isLoggedIn={isLoggedIn} />;
       case ViewType.SETTINGS: return <SettingsView isLoggedIn={isLoggedIn} />;
       default: return <ProductivityView startDate={startDate} endDate={endDate} isLoggedIn={isLoggedIn} />;
@@ -156,6 +170,7 @@ const App: React.FC = () => {
   const getViewTitle = () => {
     switch (activeView) {
       case ViewType.PRODUCTIVITY: return 'Produtividade/Relatório';
+      case ViewType.REPORTS: return 'Central de Relatórios';
       case ViewType.OPERATIONAL: return 'Gestão Operacional';
       case ViewType.SETTINGS: return 'Configurações do Sistema';
       default: return 'Produtividade/Relatório';
@@ -261,12 +276,16 @@ const App: React.FC = () => {
 
                         {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, idx) => <span key={`${d}-${idx}`} className="text-[10px] font-bold text-slate-300 py-1">{d}</span>)}
 
+                        {/* Empty cells for offset */}
+                        {Array.from({ length: new Date(viewMonthStart.getFullYear(), viewMonthStart.getMonth(), 1).getDay() }).map((_, i) => (
+                          <span key={`empty-${i}`} />
+                        ))}
+
                         {Array.from({ length: getDaysInMonth(viewMonthStart.getFullYear(), viewMonthStart.getMonth()) }).map((_, i) => {
                           const day = i + 1;
                           const isSelected = startDate.getDate() === day && startDate.getMonth() === viewMonthStart.getMonth() && startDate.getFullYear() === viewMonthStart.getFullYear();
                           return (
                             <button key={i} onClick={() => setStartDate(new Date(viewMonthStart.getFullYear(), viewMonthStart.getMonth(), day))} className={`text-[10px] font-bold py-2 rounded-lg transition-colors ${isSelected ? 'bg-tor-blue text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}>{day}</button>
-
                           );
                         })}
                       </div>
@@ -314,6 +333,11 @@ const App: React.FC = () => {
 
                         {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((d, idx) => <span key={`${d}-${idx}`} className="text-[10px] font-bold text-slate-300 py-1">{d}</span>)}
 
+                        {/* Empty cells for offset */}
+                        {Array.from({ length: new Date(viewMonthEnd.getFullYear(), viewMonthEnd.getMonth(), 1).getDay() }).map((_, i) => (
+                          <span key={`empty-${i}`} />
+                        ))}
+
                         {Array.from({ length: getDaysInMonth(viewMonthEnd.getFullYear(), viewMonthEnd.getMonth()) }).map((_, i) => {
                           const day = i + 1;
                           const isSelected = endDate.getDate() === day && endDate.getMonth() === viewMonthEnd.getMonth() && endDate.getFullYear() === viewMonthEnd.getFullYear();
@@ -332,6 +356,15 @@ const App: React.FC = () => {
                 </div>
               )}
             </div>
+
+            <button
+              onClick={handleAiInsight}
+              className="flex items-center gap-2 bg-tor-blue/10 text-tor-blue hover:bg-tor-blue/20 px-4 py-2 rounded-lg border border-tor-blue/20 transition-all group"
+            >
+              <span className={`material-symbols-outlined text-sm ${isGeneratingAi ? 'animate-spin' : 'filled-icon'}`}>auto_awesome</span>
+              <span className="hidden md:block text-xs font-bold uppercase tracking-tight">Análise IA</span>
+            </button>
+
             <button
               onClick={handleDownloadPdf}
               disabled={isExporting}
@@ -435,6 +468,42 @@ const App: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showAiModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden border border-white/20 animate-in zoom-in-95 duration-300">
+            <div className="bg-tor-dark p-6 text-white flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-yellow-500 filled-icon text-3xl">auto_awesome</span>
+                <h3 className="text-lg font-black uppercase tracking-tight">Insights Estratégicos</h3>
+              </div>
+              <button onClick={() => setShowAiModal(false)} className="hover:bg-white/10 p-2 rounded-full transition-colors">
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </div>
+            <div className="p-8">
+              {isGeneratingAi ? (
+                <div className="flex flex-col items-center py-12 gap-4">
+                  <div className="size-12 border-4 border-tor-blue border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Analisando base de dados...</p>
+                </div>
+              ) : (
+                <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed font-bold text-sm whitespace-pre-wrap">
+                  {aiInsight}
+                </div>
+              )}
+              <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+                <button
+                  onClick={() => setShowAiModal(false)}
+                  className="bg-tor-dark text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-all shadow-lg shadow-tor-dark/20"
+                >
+                  Entendido
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
