@@ -260,7 +260,7 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
             { label: 'Abordagens Veic.', value: currentData.summary.abordagensVeic },
           ].map((item) => (
 
-            <div key={item.label} className="text-center">
+            <div key={item.label} className="text-center flex flex-col justify-end h-full">
               <p className="text-[10px] md:text-[11px] font-medium text-slate-400 uppercase tracking-[0.1em] md:tracking-[0.15em] mb-1.5 opacity-90 leading-tight">
                 {item.label}
               </p>
