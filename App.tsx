@@ -48,7 +48,7 @@ const App: React.FC = () => {
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginEmail === 'admin@tor.gov.br' && loginPassword === 'tor123') {
+    if (loginEmail === 'gabrielnovacoski@gmail.com' && loginPassword === 'Gn928635@') {
       setIsLoggedIn(true);
       setShowLoginModal(false);
       setLoginEmail('');
@@ -449,7 +449,7 @@ const App: React.FC = () => {
               <div className="size-20 bg-tor-blue/20 rounded-3xl mx-auto mb-6 flex items-center justify-center border border-white/10 shadow-inner">
                 <span className="material-symbols-outlined text-4xl text-tor-blue filled-icon">lock</span>
               </div>
-              <h3 className="text-xl font-black mb-2 uppercase tracking-tight">Área do Comandante</h3>
+              <h3 className="text-xl font-black mb-2 uppercase tracking-tight">ÁREA DE GESTÃO</h3>
               <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
                 Insira a credencial de acesso para<br />habilitar o modo de edição
               </p>
@@ -461,7 +461,7 @@ const App: React.FC = () => {
                 <input
                   type="email"
                   autoFocus
-                  placeholder="admin@tor.gov.br"
+                  placeholder=""
                   className={`w-full bg-slate-50 border-2 ${loginError ? 'border-red-500' : 'border-slate-100'} focus:border-tor-blue focus:ring-0 rounded-2xl px-5 py-4 text-sm font-bold transition-all`}
                   value={loginEmail}
                   onChange={e => setLoginEmail(e.target.value)}
