@@ -226,13 +226,13 @@ const App: React.FC = () => {
               </button>
 
               {showDatePicker && (
-                <div className="absolute top-full right-0 mt-2 w-[520px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-slate-200 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute top-full right-0 mt-2 w-[92vw] md:w-[520px] max-w-[520px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-slate-200 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 select-none">
 
                   <div className="bg-tor-dark p-4 flex justify-between items-center border-b border-slate-700">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Período dos Dados</span>
                   </div>
 
-                  <div className="p-6 grid grid-cols-2 gap-8 bg-white">
+                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8 bg-white h-[60vh] md:h-auto overflow-y-auto md:overflow-visible">
                     <div className="space-y-4">
                       <div className="text-center">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Data de início</p>
