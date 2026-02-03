@@ -9,6 +9,7 @@ import { ViewType } from './types';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { getDashboardInsights } from './services/geminiService';
+import { fetchSpreadsheetProductivity } from './services/sheetsService';
 
 
 
@@ -141,10 +142,37 @@ const App: React.FC = () => {
   const handleAiInsight = useCallback(async () => {
     setIsGeneratingAi(true);
     setShowAiModal(true);
-    const summary = `Relatório de Produtividade TOR - Período: ${startDate.toLocaleDateString()} a ${endDate.toLocaleDateString()}`;
-    const insight = await getDashboardInsights(summary);
-    setAiInsight(insight);
-    setIsGeneratingAi(false);
+
+    try {
+      // Buscar dados reais para o prompt ser útil
+      const data = await fetchSpreadsheetProductivity(startDate, endDate);
+
+      let dataStr = `Período: ${startDate.toLocaleDateString()} a ${endDate.toLocaleDateString()}\n`;
+      if (data) {
+        dataStr += `\nRESUMO GERAL:\n`;
+        dataStr += `- Abordagens: ${data.summary.abordagens} pessoas, ${data.summary.abordagensVeic} veículos\n`;
+        dataStr += `- Detenções: ${data.summary.pessoasDetidas} pessoas, ${data.summary.mandados} mandados\n`;
+        dataStr += `- Autos de Infração: ${data.summary.autos}\n`;
+
+        dataStr += `\nDROGAS APREENDIDAS:\n`;
+        data.drugs.forEach(d => {
+          if (parseInt(d.value.replace(/\./g, '')) > 0) dataStr += `- ${d.label}: ${d.value}\n`;
+        });
+
+        dataStr += `\nAPREENSÕES:\n`;
+        data.seizures.forEach(s => {
+          if (parseInt(s.value.replace(/\./g, '').replace('R$', '').trim()) > 0) dataStr += `- ${s.label}: ${s.value}\n`;
+        });
+      }
+
+      const insight = await getDashboardInsights(dataStr);
+      setAiInsight(insight);
+    } catch (err) {
+      console.error(err);
+      setAiInsight("Erro ao processar dados para IA.");
+    } finally {
+      setIsGeneratingAi(false);
+    }
   }, [startDate, endDate]);
 
 
