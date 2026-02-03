@@ -278,12 +278,99 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em]">Resumo Operacional</h3>
           </div>
           <p className="text-slate-600 text-sm leading-relaxed font-medium">
-            No período compreendido entre <span className="font-bold text-slate-900">{startDate.toLocaleDateString()}</span> e <span className="font-bold text-slate-900">{endDate.toLocaleDateString()}</span>,
-            o Tático Ostensivo Rodoviário (TOR) intensificou suas operações de combate ao crime.
-            Como resultado, foram presas <span className="font-bold text-slate-800">{currentData.summary.pessoasDetidas}</span> pessoas e cumpridos <span className="font-bold text-slate-800">{currentData.summary.mandados}</span> mandados de prisão.
-            As ações também resultaram na apreensão de substâncias ilícitas e na recuperação de <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Veículos Recup.')?.value || '0'}</span> veículos com registro de furto/roubo.
-            Além disso, foram retiradas de circulação <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Armas')?.value || '0'}</span> armas de fogo e <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Munições')?.value || '0'}</span> munições.
-            O prejuízo ao crime organizado também se deu pela apreensão de <span className="font-bold text-slate-800">R$ {currentData.seizures.find(s => s.label === 'Dinheiro (R$)')?.value || '0,00'}</span> em espécie e <span className="font-bold text-slate-800">R$ {currentData.seizures.find(s => s.label === 'Mercadorias (R$)')?.value || '0,00'}</span> em mercadorias de descaminho/contrabando.
+            {(() => {
+              const cleanVal = (val: string | undefined) => {
+                if (!val) return 0;
+                return parseInt(val.replace(/\./g, '').replace(',', '')) || 0;
+              };
+              const cleanMoney = (val: string | undefined) => {
+                if (!val) return 0;
+                return parseFloat(val.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+              };
+
+              const presos = cleanVal(currentData.summary.pessoasDetidas);
+              const mandados = cleanVal(currentData.summary.mandados);
+
+              const veiculosVal = currentData.seizures.find(s => s.label === 'Veículos Recup.')?.value;
+              const veiculos = cleanVal(veiculosVal);
+
+              const armasVal = currentData.seizures.find(s => s.label === 'Armas')?.value;
+              const armas = cleanVal(armasVal);
+
+              const municoesVal = currentData.seizures.find(s => s.label === 'Munições')?.value;
+              const municoes = cleanVal(municoesVal);
+
+              const dinheiroVal = currentData.seizures.find(s => s.label === 'Dinheiro (R$)')?.value;
+              const dinheiro = cleanMoney(dinheiroVal);
+
+              const mercadoriasVal = currentData.seizures.find(s => s.label === 'Mercadorias (R$)')?.value;
+              const mercadorias = cleanMoney(mercadoriasVal);
+
+              const elements: React.ReactNode[] = [];
+
+              // Intro
+              elements.push(
+                <span key="intro">
+                  No período compreendido entre <span className="font-bold text-slate-900">{startDate.toLocaleDateString()}</span> e <span className="font-bold text-slate-900">{endDate.toLocaleDateString()}</span>,
+                  o Tático Ostensivo Rodoviário (TOR) intensificou suas operações de combate ao crime.
+                </span>
+              );
+
+              // Prisões e Mandados
+              const arrestParts: React.ReactNode[] = [];
+              if (presos > 0) arrestParts.push(<span key="presos">foram presas <span className="font-bold text-slate-800">{currentData.summary.pessoasDetidas}</span> pessoas</span>);
+              if (mandados > 0) arrestParts.push(<span key="mandados">cumpridos <span className="font-bold text-slate-800">{currentData.summary.mandados}</span> mandados de prisão</span>);
+
+              if (arrestParts.length > 0) {
+                elements.push(
+                  <span key="arrests">
+                    Como resultado, {arrestParts.reduce((prev, curr, i) => [prev, i === arrestParts.length - 1 ? ' e ' : ', ', curr])}.
+                  </span>
+                );
+              }
+
+              // Veículos
+              if (veiculos > 0) {
+                elements.push(
+                  <span key="veiculos">
+                    As ações também resultaram na recuperação de <span className="font-bold text-slate-800">{veiculosVal}</span> veículos com registro de furto/roubo.
+                  </span>
+                );
+              }
+
+              // Armas e Munições
+              const weaponParts: React.ReactNode[] = [];
+              if (armas > 0) weaponParts.push(<span key="armas"><span className="font-bold text-slate-800">{armasVal}</span> armas de fogo</span>);
+              if (municoes > 0) weaponParts.push(<span key="municoes"><span className="font-bold text-slate-800">{municoesVal}</span> munições</span>);
+
+              if (weaponParts.length > 0) {
+                elements.push(
+                  <span key="weapons">
+                    Além disso, foram retiradas de circulação {weaponParts.reduce((prev, curr, i) => [prev, i === weaponParts.length - 1 ? ' e ' : ', ', curr])}.
+                  </span>
+                );
+              }
+
+              // Dinheiro e Mercadorias
+              const moneyParts: React.ReactNode[] = [];
+              if (dinheiro > 0) moneyParts.push(<span key="dinheiro"><span className="font-bold text-slate-800">R$ {dinheiroVal}</span> em espécie</span>);
+              if (mercadorias > 0) moneyParts.push(<span key="mercadorias"><span className="font-bold text-slate-800">R$ {mercadoriasVal}</span> em mercadorias de descaminho/contrabando</span>);
+
+              if (moneyParts.length > 0) {
+                elements.push(
+                  <span key="money">
+                    O prejuízo ao crime organizado também se deu pela apreensão de {moneyParts.reduce((prev, curr, i) => [prev, i === moneyParts.length - 1 ? ' e ' : ', ', curr])}.
+                  </span>
+                );
+              }
+
+              // Fallback se nada aconteceu
+              if (elements.length === 1) { // Só tem a intro
+                elements.push(<span key="fallback">O patrulhamento tático foi mantido com o objetivo de garantir a ordem e a segurança nas rodovias estaduais.</span>);
+              }
+
+              return elements;
+            })()}
           </p>
         </div>
       </section>
