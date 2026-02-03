@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchLatestVehicleKm } from '../services/sheetsService';
 import { supabase } from '../lib/supabase';
+import PersonnelAbsences from '../components/PersonnelAbsences';
 
 
 
@@ -365,12 +366,12 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                 <div className="flex-1">
                   {editId === team.id ? (
                     <input
-                      className="text-2xl font-black text-slate-900 leading-tight mb-1 bg-slate-50 border-none p-1 rounded-md w-full"
+                      className="text-xl font-black text-slate-900 leading-tight mb-1 bg-slate-50 border-none p-1 rounded-md w-full"
                       value={editingTeam?.name}
                       onChange={e => setEditingTeam(prev => prev ? { ...prev, name: e.target.value } : null)}
                     />
                   ) : (
-                    <h3 className="text-xl md:text-[28px] font-black text-slate-900 leading-tight mb-1">{team.name}</h3>
+                    <h3 className="text-lg md:text-xl font-black text-slate-900 leading-tight mb-0.5">{team.name}</h3>
                   )}
 
                   <div className="flex items-start gap-2">
@@ -403,8 +404,8 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
               </div>
             </div>
 
-            <div className="space-y-6 relative z-10">
-              <p className="text-xs md:text-[14px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-3 text-center">
+            <div className="space-y-4 relative z-10">
+              <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2 text-center">
                 GUARNIÇÃO
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
@@ -412,8 +413,8 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                   return (
 
 
-                    <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm transition-all group/member">
-                      <div className="size-11 rounded-full bg-white flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm group-hover/member:text-slate-500 overflow-hidden transition-colors">
+                    <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 shadow-sm transition-all group/member">
+                      <div className="size-9 rounded-full bg-white flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm group-hover/member:text-slate-500 overflow-hidden transition-colors">
                         {getRankIcon(member.name) ? (
                           <img src={getRankIcon(member.name)!} className="w-full h-full object-contain p-1" alt="rank" />
                         ) : (
@@ -481,6 +482,8 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         ))}
       </div>
 
+      <PersonnelAbsences isLoggedIn={isLoggedIn} />
+
       <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -507,7 +510,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
         </div>
 
-        <div className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+        <div className="p-3 md:p-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
           {vehicles.map((vehicle) => {
             const currentVehicle = editVehicleId === vehicle.id ? editingVehicle! : vehicle;
             const oilLife = calculateOilLife(currentVehicle);
@@ -516,7 +519,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
             const isUrgent = remainingKm <= 500;
 
             return (
-              <div key={vehicle.id} className={`space-y-6 md:space-y-8 ${vehicle.id === 'TOR-02' ? 'lg:border-l lg:border-slate-50 lg:pl-12' : ''}`}>
+              <div key={vehicle.id} className={`space-y-4 md:space-y-6 ${vehicle.id === 'TOR-02' ? 'lg:border-l lg:border-slate-50 lg:pl-8' : ''}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     {editVehicleId === vehicle.id ? (
@@ -581,7 +584,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                         onChange={e => setEditingVehicle(prev => prev ? { ...prev, plate: e.target.value } : null)}
                       />
                     ) : (
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-md">{vehicle.plate}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md">{vehicle.plate}</span>
                     )}
                     {isLoggedIn && editVehicleId !== vehicle.id && (
                       <button onClick={() => handleStartEditVehicle(vehicle)} className="size-8 rounded-full bg-slate-50 text-slate-400 hover:bg-tor-blue hover:text-white flex items-center justify-center transition-all">
@@ -596,7 +599,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                     { label: 'Odômetro Atual', value: vehicle.odometer, key: 'odometer' },
                     { label: 'Próx. Troca Óleo', value: vehicle.lastOilChangeOdometer + vehicle.oilInterval, key: 'oil' },
                   ].map(item => (
-                    <div key={item.label} className="p-3 md:p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div key={item.label} className="p-2 md:p-3 bg-slate-50 rounded-xl border border-slate-100">
                       <p className="text-[8px] md:text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">{item.label}</p>
                       {editVehicleId === vehicle.id ? (
                         <input
