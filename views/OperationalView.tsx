@@ -318,12 +318,16 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
 
   const calculateOilLife = (v: Vehicle) => {
-    const nextChangeKm = v.lastOilChangeOdometer + v.oilInterval;
-    const remainingKm = nextChangeKm - v.odometer;
-    const oilInterval = 10000; // Base de 10.000 km conforme solicitado
+    const lastChange = v.lastOilChangeOdometer || 0;
+    const interval = v.oilInterval || 0;
+    const current = v.odometer || 0;
 
-    const life = (remainingKm / oilInterval) * 100;
-    return Math.max(0, Math.min(100, Math.round(life)));
+    const nextChangeKm = lastChange + interval;
+    const remainingKm = nextChangeKm - current;
+    const baseInterval = 10000; // Base de 10.000 km conforme solicitado
+
+    const life = (remainingKm / baseInterval) * 100;
+    return Math.max(0, Math.min(100, Math.round(life || 0)));
   };
 
 
