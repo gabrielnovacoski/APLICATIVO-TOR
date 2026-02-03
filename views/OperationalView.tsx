@@ -319,7 +319,8 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
   const calculateOilLife = (v: Vehicle) => {
     const kmSinceChange = v.odometer - v.lastOilChangeOdometer;
-    const life = Math.max(0, 100 - (kmSinceChange / v.oilInterval) * 100);
+    const oilInterval = 10000; // Forçado para 10.000 km conforme solicitação
+    const life = Math.max(0, 100 - (kmSinceChange / oilInterval) * 100);
     return Math.min(100, Math.round(life));
   };
 

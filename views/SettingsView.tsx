@@ -283,13 +283,12 @@ const SettingsView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
       <footer className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-200/50">
         <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conectado à Intranet PMRv SC</p>
+          {/* Removido: Conectado à Intranet PMRv SC */}
         </div>
         <div className="flex items-center gap-6">
-          <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Versão v3.2.0-STABLE</p>
+          <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Versão V1.2.2026</p>
           <div className="h-4 w-px bg-slate-200"></div>
-          <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">© 2024 TOR Digital Solutions</p>
+          <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">© 2026 TOR</p>
         </div>
       </footer>
     </div>
