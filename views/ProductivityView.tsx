@@ -220,19 +220,19 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center transition-all hover:bg-slate-50/80 group">
-            <div className="size-12 rounded-xl bg-slate-900 text-white flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="bg-slate-900 p-6 rounded-2xl shadow-lg shadow-slate-900/20 border border-slate-800 flex flex-col justify-center transition-all hover:scale-[1.02] group">
+            <div className="size-12 rounded-xl bg-white/10 text-white flex items-center justify-center mb-4 group-hover:bg-white group-hover:text-slate-900 transition-all">
               <span className="material-symbols-outlined text-2xl">front_hand</span>
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pessoas Detidas</p>
-            <p className="text-4xl font-black text-slate-900">{currentData.summary.pessoasDetidas}</p>
+            <p className="text-4xl font-black text-white">{currentData.summary.pessoasDetidas}</p>
           </div>
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center transition-all hover:bg-slate-50/80 group">
-            <div className="size-12 rounded-xl bg-slate-900 text-white flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="bg-slate-900 p-6 rounded-2xl shadow-lg shadow-slate-900/20 border border-slate-800 flex flex-col justify-center transition-all hover:scale-[1.02] group">
+            <div className="size-12 rounded-xl bg-white/10 text-white flex items-center justify-center mb-4 group-hover:bg-white group-hover:text-slate-900 transition-all">
               <span className="material-symbols-outlined text-2xl">gavel</span>
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mandados Judiciais</p>
-            <p className="text-4xl font-black text-slate-900">{currentData.summary.mandados}</p>
+            <p className="text-4xl font-black text-white">{currentData.summary.mandados}</p>
           </div>
         </div>
 
