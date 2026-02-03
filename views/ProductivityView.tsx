@@ -283,12 +283,11 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
             </div>
             <p className="text-slate-600 text-sm leading-relaxed font-medium">
               No período compreendido entre <span className="font-bold text-slate-900">{startDate.toLocaleDateString()}</span> e <span className="font-bold text-slate-900">{endDate.toLocaleDateString()}</span>,
-              o efetivo do Tático Ostensivo Rodoviário (TOR) realizou a abordagem de <span className="font-bold text-slate-800">{currentData.summary.abordagens}</span> pessoas
-              e <span className="font-bold text-slate-800">{currentData.summary.abordagensVeic}</span> veículos.
-              Como resultado das ações de fiscalização e combate ao crime, foram lavrados <span className="font-bold text-slate-800">{currentData.summary.autos}</span> autos de infração
-              e efetuadas <span className="font-bold text-slate-800">{currentData.summary.prisoes}</span> prisões em flagrante/detenções,
-              além do cumprimento de <span className="font-bold text-slate-800">{currentData.summary.mandados}</span> mandados judiciais.
-              A produtividade reflete o compromisso contínuo com a segurança viária e o combate ao crime organizado nas rodovias estaduais.
+              o Tático Ostensivo Rodoviário (TOR) intensificou suas operações de combate ao crime.
+              Como resultado, foram presas <span className="font-bold text-slate-800">{currentData.summary.pessoasDetidas}</span> pessoas e cumpridos <span className="font-bold text-slate-800">{currentData.summary.mandados}</span> mandados de prisão.
+              As ações também resultaram na apreensão de substâncias ilícitas e na recuperação de <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Veículos Recup.')?.value || '0'}</span> veículos com registro de furto/roubo.
+              Além disso, foram retiradas de circulação <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Armas')?.value || '0'}</span> armas de fogo e <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Munições')?.value || '0'}</span> munições.
+              O prejuízo ao crime organizado também se deu pela apreensão de <span className="font-bold text-slate-800">R$ {currentData.seizures.find(s => s.label === 'Dinheiro (R$)')?.value || '0,00'}</span> em espécie e <span className="font-bold text-slate-800">R$ {currentData.seizures.find(s => s.label === 'Mercadorias (R$)')?.value || '0,00'}</span> em mercadorias de descaminho/contrabando.
             </p>
           </div>
         </section>
