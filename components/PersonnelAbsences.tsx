@@ -161,20 +161,20 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                 )}
             </div>
 
-            <div className="p-4 md:p-6">
+            <div className="p-3 md:p-6">
                 {absences.length === 0 ? (
-                    <div className="text-center py-8 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                        <span className="material-symbols-outlined text-3xl text-slate-300 mb-1">person_off</span>
-                        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Nenhum policial afastado</p>
+                    <div className="text-center py-6 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                        <span className="material-symbols-outlined text-2xl text-slate-300 mb-1">person_off</span>
+                        <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest">Nenhum policial afastado</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-1 min-[440px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
                         {absences.map((absence) => (
-                            <div key={absence.id} className="group relative bg-white border border-slate-200 rounded-xl p-3 hover:shadow-md transition-all">
+                            <div key={absence.id} className="group relative bg-white border border-slate-200 rounded-xl p-2.5 md:p-3 hover:shadow-md transition-all flex flex-col justify-between min-h-[110px]">
                                 <div className="flex justify-between items-start mb-2">
-                                    <div className="flex flex-col min-w-0">
-                                        <span className="text-[8px] font-black text-orange-500 uppercase tracking-widest mb-0.5 truncate">{absence.type}</span>
-                                        <h4 className="text-slate-900 font-black text-[11px] uppercase leading-tight truncate">
+                                    <div className="flex flex-col min-w-0 flex-1">
+                                        <span className="text-[7px] md:text-[8px] font-black text-orange-500 uppercase tracking-widest mb-0.5 truncate">{absence.type}</span>
+                                        <h4 className="text-slate-900 font-black text-[10px] md:text-[11px] uppercase leading-tight truncate">
                                             {absence.personnel?.graduation} {absence.personnel?.name}
                                         </h4>
                                     </div>
@@ -191,12 +191,12 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                                 </div>
 
                                 <div className="space-y-2">
-                                    <div className="flex items-center gap-2 bg-slate-50 rounded-lg p-2">
-                                        <span className="material-symbols-outlined text-slate-400 text-sm">calendar_month</span>
+                                    <div className="flex items-center gap-1.5 bg-slate-50 rounded-lg p-1.5 border border-slate-100/50">
+                                        <span className="material-symbols-outlined text-slate-400 text-xs shrink-0">calendar_month</span>
                                         <div className="flex flex-col min-w-0">
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Período</p>
-                                            <p className="text-[9px] font-bold text-slate-700 whitespace-nowrap">
-                                                {formatDate(absence.start_date)} - {formatDate(absence.end_date)}
+                                            <p className="text-[7px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Período</p>
+                                            <p className="text-[9px] font-bold text-slate-700 leading-tight">
+                                                {formatDate(absence.start_date)} — {formatDate(absence.end_date)}
                                             </p>
                                         </div>
                                     </div>
