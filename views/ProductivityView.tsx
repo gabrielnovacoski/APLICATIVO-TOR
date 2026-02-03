@@ -247,8 +247,6 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
 
         <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-tor-blue/20 to-transparent skew-x-12 translate-x-40"></div>
 
-
-
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-x-4 md:gap-x-8 gap-y-6 relative z-10 w-full">
           {[
             { label: 'Autos de Infr.', value: currentData.summary.autos },
@@ -269,30 +267,26 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
 
           ))}
         </div>
-
-
-
-
-        {/* Resumo Final */}
-        <section className="mt-8 md:mt-12 bg-white rounded-[24px] md:rounded-3xl p-5 md:p-8 border border-slate-100 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-tor-blue/5 rounded-full -mr-16 -mt-16"></div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="material-symbols-outlined text-tor-blue">summarize</span>
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em]">Resumo Operacional</h3>
-            </div>
-            <p className="text-slate-600 text-sm leading-relaxed font-medium">
-              No período compreendido entre <span className="font-bold text-slate-900">{startDate.toLocaleDateString()}</span> e <span className="font-bold text-slate-900">{endDate.toLocaleDateString()}</span>,
-              o Tático Ostensivo Rodoviário (TOR) intensificou suas operações de combate ao crime.
-              Como resultado, foram presas <span className="font-bold text-slate-800">{currentData.summary.pessoasDetidas}</span> pessoas e cumpridos <span className="font-bold text-slate-800">{currentData.summary.mandados}</span> mandados de prisão.
-              As ações também resultaram na apreensão de substâncias ilícitas e na recuperação de <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Veículos Recup.')?.value || '0'}</span> veículos com registro de furto/roubo.
-              Além disso, foram retiradas de circulação <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Armas')?.value || '0'}</span> armas de fogo e <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Munições')?.value || '0'}</span> munições.
-              O prejuízo ao crime organizado também se deu pela apreensão de <span className="font-bold text-slate-800">R$ {currentData.seizures.find(s => s.label === 'Dinheiro (R$)')?.value || '0,00'}</span> em espécie e <span className="font-bold text-slate-800">R$ {currentData.seizures.find(s => s.label === 'Mercadorias (R$)')?.value || '0,00'}</span> em mercadorias de descaminho/contrabando.
-            </p>
-          </div>
-        </section>
-
       </footer>
+
+      {/* Resumo Final - Agora separado em seu próprio container */}
+      <section className="bg-white rounded-[24px] md:rounded-3xl p-6 md:p-8 border border-slate-200 shadow-lg relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-tor-blue/5 rounded-full -mr-16 -mt-16"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="material-symbols-outlined text-tor-blue">summarize</span>
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em]">Resumo Operacional</h3>
+          </div>
+          <p className="text-slate-600 text-sm leading-relaxed font-medium">
+            No período compreendido entre <span className="font-bold text-slate-900">{startDate.toLocaleDateString()}</span> e <span className="font-bold text-slate-900">{endDate.toLocaleDateString()}</span>,
+            o Tático Ostensivo Rodoviário (TOR) intensificou suas operações de combate ao crime.
+            Como resultado, foram presas <span className="font-bold text-slate-800">{currentData.summary.pessoasDetidas}</span> pessoas e cumpridos <span className="font-bold text-slate-800">{currentData.summary.mandados}</span> mandados de prisão.
+            As ações também resultaram na apreensão de substâncias ilícitas e na recuperação de <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Veículos Recup.')?.value || '0'}</span> veículos com registro de furto/roubo.
+            Além disso, foram retiradas de circulação <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Armas')?.value || '0'}</span> armas de fogo e <span className="font-bold text-slate-800">{currentData.seizures.find(s => s.label === 'Munições')?.value || '0'}</span> munições.
+            O prejuízo ao crime organizado também se deu pela apreensão de <span className="font-bold text-slate-800">R$ {currentData.seizures.find(s => s.label === 'Dinheiro (R$)')?.value || '0,00'}</span> em espécie e <span className="font-bold text-slate-800">R$ {currentData.seizures.find(s => s.label === 'Mercadorias (R$)')?.value || '0,00'}</span> em mercadorias de descaminho/contrabando.
+          </p>
+        </div>
+      </section>
     </div>
 
   );
