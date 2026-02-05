@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchLatestVehicleKm } from '../services/sheetsService';
 import { supabase } from '../lib/supabase';
-import PersonnelAbsences from '../components/PersonnelAbsences';
-
-
+import LeavesPanel, { Leave } from '../components/LeavesPanel'; // Importação do novo componente
 
 interface Member {
   name: string;
@@ -23,7 +21,7 @@ interface Team {
 interface Vehicle {
   id: string;
   prefix: string;
-  status: 'OPERANDO' | 'BAIXADA'; // Novo: status de operação
+  status: 'OPERANDO' | 'BAIXADA';
   model: string;
   year: string;
   plate: string;
@@ -42,7 +40,6 @@ const initialTeams: Team[] = [
     color: 'tor-blue',
     members: [
       { name: 'Sgt. Silva', role: 'GESTOR', icon: 'person' },
-
       { name: 'Cb. Oliveira', role: 'MOTORISTA', icon: 'navigation' },
       { name: 'Sd. Pereira', role: 'AUXILIAR 1', icon: 'shield' },
       { name: 'Sd. Lima', role: 'AUXILIAR 2', icon: 'shield' },
@@ -56,7 +53,6 @@ const initialTeams: Team[] = [
     color: 'tor-blue',
     members: [
       { name: 'Sgt. Santos', role: 'GESTOR', icon: 'person' },
-
       { name: 'Sd. Costa', role: 'MOTORISTA', icon: 'navigation' },
       { name: 'Cb. Mendes', role: '3º HOMEM', icon: 'shield' },
       { name: 'Sd. Rocha', role: '4º HOMEM', icon: 'shield' },
@@ -108,29 +104,37 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [personnelList, setPersonnelList] = useState<any[]>([]);
+  const [activeLeaves, setActiveLeaves] = useState<Leave[]>([]);
+
+  // Estados de Edição
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [editVehicleId, setEditVehicleId] = useState<string | null>(null);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
 
+    // Buscar Afastamentos Ativos (para ícones)
+    const today = new Date().toISOString().split('T')[0];
+    const { data: leavesData } = await supabase
+      .from('personnel_leaves')
+      .select('*, personnel:personnel_id(name, graduation)')
+      .lte('start_date', today)
+      .gte('end_date', today);
+
+    if (leavesData) setActiveLeaves(leavesData);
+
     // Buscar Viaturas
     const { data: vData } = await supabase.from('vehicles').select('*');
     if (vData && vData.length > 0) {
-      const mappedVehicles = vData.map(v => ({
+      setVehicles(vData.map(v => ({
         ...v,
         oilInterval: v.oil_interval,
         lastOilChangeOdometer: v.last_oil_change_odometer
-      }));
-
-      // Ordenação fixa: TOR 0003 em primeiro, TOR 0004 em segundo
-      const sortedVehicles = mappedVehicles.sort((a, b) => {
-        if (a.id === 'TOR 0003') return -1;
-        if (b.id === 'TOR 0003') return 1;
-        if (a.id === 'TOR 0004') return -1;
-        if (b.id === 'TOR 0004') return 1;
-        return a.id.localeCompare(b.id);
-      });
-
-      setVehicles(sortedVehicles);
+      })));
     } else {
       setVehicles(initialVehicles);
       await supabase.from('vehicles').upsert(initialVehicles.map(v => ({
@@ -143,7 +147,6 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         oil_interval: v.oilInterval,
         last_oil_change_odometer: v.lastOilChangeOdometer
       })));
-
     }
 
     // Buscar Efetivo
@@ -158,7 +161,6 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         members: typeof t.members === 'string' ? JSON.parse(t.members) : t.members
       })));
     } else {
-      // Se banco vazio, cria as iniciais e já pega os IDs reais (UUIDs) de volta
       const { data: insertedData } = await supabase.from('operational_teams').insert(
         initialTeams.map(t => ({
           name: t.name,
@@ -182,55 +184,49 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
   useEffect(() => {
     fetchData();
+
+    // Polling Automático de KM (a cada 60s)
+    const interval = setInterval(() => {
+      syncVehicleKm();
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
+  const getMemberStatusIcon = (memberName: string) => {
+    // Tenta encontrar um afastamento ativo para este nome
+    const leave = activeLeaves.find(l => {
+      const pName = l.personnel ? `${l.personnel.graduation} ${l.personnel.name}` : '';
+      return memberName.includes(l.personnel?.name || '@@@'); // O match por nome não é ideal, mas funcional sem refatorar toda a estrutura de teams para usar IDs
+    });
 
+    if (leave) {
+      if (leave.type === 'Férias') return { icon: 'beach_access', color: 'text-orange-500', bg: 'bg-orange-50' }; // Praia
+      if (leave.type === 'Licença' || leave.type === 'Atestado') return { icon: 'assignment', color: 'text-purple-500', bg: 'bg-purple-50' }; // Documento
+    }
 
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+    // Default: Trabalhando (Viatura)
+    return { icon: 'local_police', color: 'text-emerald-500', bg: 'bg-emerald-50' };
+  };
 
-  const [editVehicleId, setEditVehicleId] = useState<string | null>(null);
-  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
-
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-
-
-  // Função para sincronizar KM da planilha
   const syncVehicleKm = async () => {
     setIsSyncing(true);
     const updatedVehicles = await Promise.all(vehicles.map(async (v) => {
       const latestKm = await fetchLatestVehicleKm(v.id);
       if (latestKm !== null) {
-        // Atualizar no Supabase
         await supabase.from('vehicles').update({ odometer: latestKm }).eq('id', v.id);
         return { ...v, odometer: latestKm };
       }
       return v;
     }));
-
-    // Re-ordenar após atualização
-    const sortedUpdated = updatedVehicles.sort((a, b) => {
-      if (a.id === 'TOR 0003') return -1;
-      if (b.id === 'TOR 0003') return 1;
-      if (a.id === 'TOR 0004') return -1;
-      if (b.id === 'TOR 0004') return 1;
-      return a.id.localeCompare(b.id);
-    });
-
-    setVehicles(sortedUpdated);
+    setVehicles(updatedVehicles);
     setIsSyncing(false);
   };
-
-
 
   const handleStartEdit = (team: Team) => {
     setEditId(team.id);
     const members = [...team.members];
     const roles = ['GESTOR', 'MOTORISTA', '3º HOMEM', '4º HOMEM'];
-
-    // Garante 4 slots para edição
     const fullMembers = roles.map((role, idx) => {
       return members[idx] || { name: '', role: role, icon: 'person' };
     });
@@ -250,28 +246,22 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
           members: cleanedMembers
         });
 
-
       if (!error) {
         setTeams(teams.map(t => t.id === editingTeam.id ? { ...editingTeam, members: cleanedMembers } : t));
         setEditId(null);
         setEditingTeam(null);
         alert('Alterações da guarnição salvas com sucesso!');
       } else {
-        console.error('Erro ao salvar equipe:', error);
-        alert(`Erro ao salvar no banco de dados: ${error.message}`);
+        alert(`Erro ao salvar: ${error.message}`);
       }
       setIsSaving(false);
     }
   };
 
-
-
-
   const handleStartEditVehicle = (vehicle: Vehicle) => {
     setEditVehicleId(vehicle.id);
     setEditingVehicle({ ...vehicle });
   };
-
 
   const handleSaveVehicle = async () => {
     if (editingVehicle && editVehicleId) {
@@ -293,57 +283,35 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         if (editingVehicle.id !== editVehicleId) {
           fetchData();
         } else {
-          const newVehicles = vehicles.map(v => v.id === editVehicleId ? editingVehicle : v);
-          const sortedNew = newVehicles.sort((a, b) => {
-            if (a.id === 'TOR 0003') return -1;
-            if (b.id === 'TOR 0003') return 1;
-            if (a.id === 'TOR 0004') return -1;
-            if (b.id === 'TOR 0004') return 1;
-            return a.id.localeCompare(b.id);
-          });
-          setVehicles(sortedNew);
+          setVehicles(vehicles.map(v => v.id === editVehicleId ? editingVehicle : v));
         }
         setEditVehicleId(null);
         setEditingVehicle(null);
         alert('Dados da viatura atualizados!');
       } else {
-        console.error('Erro ao salvar viatura:', error);
         alert(`Erro ao salvar viatura: ${error.message}`);
       }
       setIsSaving(false);
     }
   };
 
-
-
-
-
   const calculateOilLife = (v: Vehicle) => {
-    const lastChange = v.lastOilChangeOdometer || 0;
-    const interval = v.oilInterval || 0;
-    const current = v.odometer || 0;
-
-    const nextChangeKm = lastChange + interval;
-    const remainingKm = nextChangeKm - current;
-    const baseInterval = 10000; // Base de 10.000 km conforme solicitado
-
-    const life = (remainingKm / baseInterval) * 100;
-    return Math.max(0, Math.min(100, Math.round(life || 0)));
+    const kmSinceChange = v.odometer - v.lastOilChangeOdometer;
+    const life = Math.max(0, 100 - (kmSinceChange / v.oilInterval) * 100);
+    return Math.min(100, Math.round(life));
   };
-
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <div className="size-16 border-4 border-tor-blue border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-900 font-black uppercase tracking-widest text-sm">Sincronizando com o Supabase...</p>
+        <p className="text-slate-900 font-black uppercase tracking-widest text-sm">Carregando dados operacionais e afastamentos...</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-
       <style>{`
         @keyframes flash-red {
           0%, 100% { opacity: 1; transform: scale(1); }
@@ -353,25 +321,29 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
           animation: flash-red 0.8s ease-in-out infinite;
         }
       `}</style>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+
+      {/* Painel de Afastamentos */}
+      <LeavesPanel isLoggedIn={isLoggedIn} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {teams.map((team) => (
-          <div key={team.id} className="bg-white rounded-[24px] md:rounded-[32px] p-5 md:p-8 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-xl transition-all duration-500">
+          <div key={team.id} className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-xl transition-all duration-500">
             <div className={`absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -translate-y-12 translate-x-12 opacity-50`}></div>
 
-            <div className="flex justify-between items-start mb-6 md:mb-8 relative z-10">
-              <div className="flex gap-3 md:gap-5 flex-1">
-                <div className={`size-12 md:size-16 rounded-[18px] md:rounded-[22px] bg-blue-50 flex items-center justify-center text-tor-blue shadow-inner shrink-0`}>
-                  <span className="material-symbols-outlined text-2xl md:text-4xl filled-icon">shield</span>
+            <div className="flex justify-between items-start mb-8 relative z-10">
+              <div className="flex gap-5 flex-1">
+                <div className={`size-16 rounded-[22px] bg-blue-50 flex items-center justify-center text-tor-blue shadow-inner`}>
+                  <span className="material-symbols-outlined text-4xl filled-icon">shield</span>
                 </div>
                 <div className="flex-1">
                   {editId === team.id ? (
                     <input
-                      className="text-xl font-black text-slate-900 leading-tight mb-1 bg-slate-50 border-none p-1 rounded-md w-full"
+                      className="text-2xl font-black text-slate-900 leading-tight mb-1 bg-slate-50 border-none p-1 rounded-md w-full"
                       value={editingTeam?.name}
                       onChange={e => setEditingTeam(prev => prev ? { ...prev, name: e.target.value } : null)}
                     />
                   ) : (
-                    <h3 className="text-lg md:text-xl font-black text-slate-900 leading-tight mb-0.5">{team.name}</h3>
+                    <h3 className="text-[28px] font-black text-slate-900 leading-tight mb-1">{team.name}</h3>
                   )}
 
                   <div className="flex items-start gap-2">
@@ -404,17 +376,23 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
               </div>
             </div>
 
-            <div className="space-y-4 relative z-10">
-              <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2 text-center">
+            <div className="space-y-6 relative z-10">
+              <p className="text-[14px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-3 text-center">
                 GUARNIÇÃO
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 {(editId === team.id ? editingTeam!.members : team.members.filter(m => m.name.trim() !== '')).map((member, idx) => {
+                  // Calcular ícone de status dinâmico
+                  const statusInfo = getMemberStatusIcon(member.name);
+
                   return (
+                    <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm transition-all group/member relative">
+                      {/* Badge de Status Dinâmico */}
+                      <div className={`absolute -top-2 -right-2 p-1.5 rounded-full ${statusInfo.bg} ${statusInfo.color} shadow-sm z-20`}>
+                        <span className="material-symbols-outlined text-sm">{statusInfo.icon}</span>
+                      </div>
 
-
-                    <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-200 shadow-sm transition-all group/member">
-                      <div className="size-9 rounded-full bg-white flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm group-hover/member:text-slate-500 overflow-hidden transition-colors">
+                      <div className="size-11 rounded-full bg-white flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm group-hover/member:text-slate-500 overflow-hidden transition-colors">
                         {getRankIcon(member.name) ? (
                           <img src={getRankIcon(member.name)!} className="w-full h-full object-contain p-1" alt="rank" />
                         ) : (
@@ -440,8 +418,6 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                               {personnelList.map((p: any) => (
                                 <option key={p.id} value={`${p.graduation} ${p.name}`}>{p.graduation} {p.name}</option>
                               ))}
-
-
                             </select>
                             <input
                               className={`text-[9px] font-black text-tor-blue uppercase tracking-tight bg-white border border-slate-200 rounded px-1.5 py-1 w-full`}
@@ -482,8 +458,6 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         ))}
       </div>
 
-      <PersonnelAbsences isLoggedIn={isLoggedIn} />
-
       <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -494,32 +468,32 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
             </div>
             <div className="flex flex-col">
               <h3 className="text-slate-900 text-lg font-bold uppercase tracking-wider leading-tight">Status das Viaturas</h3>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Sincronizado com Google Sheets</p>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                {isSyncing ? 'Sincronizando Automaticamente...' : 'Monitoramento Automático Ativo (60s)'}
+              </p>
             </div>
           </div>
           {isLoggedIn && (
             <button
               onClick={syncVehicleKm}
               disabled={isSyncing}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest text-slate-600 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest text-slate-400 disabled:opacity-50"
             >
-              <span className={`material-symbols-outlined text-sm ${isSyncing ? 'animate-spin' : ''}`}>sync</span>
-              {isSyncing ? 'Sincronizando...' : 'Sincronizar KM'}
+              <span className="material-symbols-outlined text-sm">refresh</span>
+              Forçar Atualização
             </button>
           )}
 
         </div>
 
-        <div className="p-3 md:p-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+        <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
           {vehicles.map((vehicle) => {
             const currentVehicle = editVehicleId === vehicle.id ? editingVehicle! : vehicle;
             const oilLife = calculateOilLife(currentVehicle);
-            const nextChange = (currentVehicle.lastOilChangeOdometer || 0) + (currentVehicle.oilInterval || 0);
-            const remainingKm = nextChange - (currentVehicle.odometer || 0);
-            const isUrgent = remainingKm <= 500;
+            const isUrgent = currentVehicle.odometer >= (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval);
 
             return (
-              <div key={vehicle.id} className={`space-y-4 md:space-y-6 ${vehicle.id === 'TOR-02' ? 'lg:border-l lg:border-slate-50 lg:pl-8' : ''}`}>
+              <div key={vehicle.id} className={`space-y-8 ${vehicle.id === 'TOR-02' ? 'lg:border-l lg:border-slate-50 lg:pl-12' : ''}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     {editVehicleId === vehicle.id ? (
@@ -539,21 +513,21 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                       {editVehicleId === vehicle.id ? (
                         <div className="flex flex-col gap-1">
                           <input
-                            className="bg-slate-50 border-none rounded text-base md:text-lg font-black text-slate-900 p-1 w-32"
+                            className="bg-slate-50 border-none rounded text-lg font-black text-slate-900 p-1 w-32"
                             value={editingVehicle?.model}
                             onChange={e => setEditingVehicle(prev => prev ? { ...prev, model: e.target.value } : null)}
                             placeholder="MODELO"
                           />
                           <div className="flex gap-2">
                             <input
-                              className="bg-slate-50 border-none rounded text-[10px] md:text-xs font-bold text-slate-300 p-0.5 w-16"
+                              className="bg-slate-50 border-none rounded text-xs font-bold text-slate-300 p-0.5 w-16"
                               value={editingVehicle?.year}
                               onChange={e => setEditingVehicle(prev => prev ? { ...prev, year: e.target.value } : null)}
                               placeholder="ANO"
                             />
 
                             <select
-                              className="bg-slate-100 text-slate-600 border-none rounded text-[9px] md:text-[10px] font-black p-0.5 w-24"
+                              className="bg-slate-100 text-slate-600 border-none rounded text-[10px] font-black p-0.5 w-24"
                               value={editingVehicle?.status}
                               onChange={e => setEditingVehicle(prev => prev ? { ...prev, status: e.target.value as any } : null)}
                             >
@@ -564,10 +538,10 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                         </div>
                       ) : (
                         <div className="flex flex-col">
-                          <h4 className="text-slate-900 font-black text-base md:text-lg">
+                          <h4 className="text-slate-900 font-black text-lg">
                             {vehicle.model}
-                            <span className="text-slate-300 font-bold text-xs md:text-sm ml-2">{vehicle.year}</span>
-                            <span className={`ml-3 px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-black ${vehicle.status === 'OPERANDO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                            <span className="text-slate-300 font-bold text-sm ml-2">{vehicle.year}</span>
+                            <span className={`ml-3 px-2 py-0.5 rounded-full text-[9px] font-black ${vehicle.status === 'OPERANDO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                               {vehicle.status}
                             </span>
                           </h4>
@@ -584,7 +558,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                         onChange={e => setEditingVehicle(prev => prev ? { ...prev, plate: e.target.value } : null)}
                       />
                     ) : (
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md">{vehicle.plate}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-md">{vehicle.plate}</span>
                     )}
                     {isLoggedIn && editVehicleId !== vehicle.id && (
                       <button onClick={() => handleStartEditVehicle(vehicle)} className="size-8 rounded-full bg-slate-50 text-slate-400 hover:bg-tor-blue hover:text-white flex items-center justify-center transition-all">
@@ -594,17 +568,17 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   {[
                     { label: 'Odômetro Atual', value: vehicle.odometer, key: 'odometer' },
                     { label: 'Próx. Troca Óleo', value: vehicle.lastOilChangeOdometer + vehicle.oilInterval, key: 'oil' },
                   ].map(item => (
-                    <div key={item.label} className="p-2 md:p-3 bg-slate-50 rounded-xl border border-slate-100">
-                      <p className="text-[8px] md:text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">{item.label}</p>
+                    <div key={item.label} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">{item.label}</p>
                       {editVehicleId === vehicle.id ? (
                         <input
                           type="number"
-                          className="w-full bg-white border-slate-200 rounded text-xs md:text-sm font-black text-slate-800 p-0.5"
+                          className="w-full bg-white border-slate-200 rounded text-sm font-black text-slate-800 p-0.5"
                           value={item.key === 'odometer' ? editingVehicle?.odometer : (editingVehicle?.lastOilChangeOdometer || 0) + (editingVehicle?.oilInterval || 0)}
                           onChange={e => {
                             const val = parseInt(e.target.value) || 0;
@@ -616,7 +590,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                           }}
                         />
                       ) : (
-                        <p className="text-xs md:text-sm font-black text-slate-800">{item.value.toLocaleString('pt-BR')} km</p>
+                        <p className="text-sm font-black text-slate-800">{item.value.toLocaleString('pt-BR')} km</p>
                       )}
                     </div>
                   ))}
@@ -641,15 +615,12 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                       <p className="text-[11px] font-black text-red-600 uppercase tracking-widest animate-flash-red">
                         ⚠️ TROCAR DE ÓLEO URGENTE ⚠️
                       </p>
-                      <p className="text-[11px] text-red-500 font-black uppercase tracking-tighter">
-                        {remainingKm <= 0
-                          ? `Vencido por ${Math.abs(remainingKm).toLocaleString('pt-BR')} km`
-                          : `Faltam ${remainingKm.toLocaleString('pt-BR')} km para a troca`
-                        }
+                      <p className="text-[8px] text-red-500 font-bold uppercase tracking-tighter">
+                        Vencido por {(currentVehicle.odometer - (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval)).toLocaleString('pt-BR')} km
                       </p>
                     </div>
                   ) : (
-                    <p className="text-[11px] text-slate-500 font-bold uppercase text-center tracking-tighter">
+                    <p className="text-[8px] text-slate-400 font-bold uppercase text-center tracking-tighter">
                       {Math.max(0, (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval) - currentVehicle.odometer).toLocaleString('pt-BR')} km restantes para troca
                     </p>
                   )}
@@ -673,3 +644,4 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 };
 
 export default OperationalView;
+

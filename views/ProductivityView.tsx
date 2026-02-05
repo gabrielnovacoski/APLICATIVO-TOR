@@ -32,9 +32,9 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
       const { data: vData } = await supabase.from('vehicles').select('*');
       if (vData) {
         const critical = vData.filter(v => {
-          const nextChange = (v.last_oil_change_odometer || 0) + (v.oil_interval || 0);
-          const remaining = nextChange - (v.odometer || 0);
-          return remaining <= 500; // Alerta somente se faltar 500 km ou menos
+          const kmSinceChange = v.odometer - v.last_oil_change_odometer;
+          const life = Math.max(0, 100 - (kmSinceChange / v.oil_interval) * 100);
+          return life < 15; // Alerta se vida útil do óleo for menor que 15%
         });
         setMaintenanceAlerts(critical);
       }
@@ -131,7 +131,7 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
         <div className="flex items-center gap-2 mb-4 border-l-4 border-tor-blue pl-3">
           <h2 className="text-lg font-bold text-slate-800 uppercase tracking-wider">Apreensões</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {currentData.seizures.map((stat) => (
             <div key={stat.label} className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden text-center group transition-all hover:shadow-xl hover:-translate-y-1 relative">
               {isLoggedIn && stat.trend !== undefined && (
@@ -174,8 +174,8 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
             <h2 className="text-lg font-bold text-slate-800 uppercase tracking-wider">Estatísticas de Boletins</h2>
             <span className="material-symbols-outlined text-slate-300">analytics</span>
           </div>
-          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
-            <div className="size-44 md:size-52 shrink-0 relative">
+          <div className="flex flex-col sm:flex-row items-center gap-10">
+            <div className="size-52 shrink-0 relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -220,19 +220,19 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-slate-900 p-6 rounded-2xl shadow-lg shadow-slate-900/20 border border-slate-800 flex flex-col justify-center transition-all hover:scale-[1.02] group">
-            <div className="size-12 rounded-xl bg-white/10 text-white flex items-center justify-center mb-4 group-hover:bg-white group-hover:text-slate-900 transition-all">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center transition-all hover:bg-slate-50/80 group">
+            <div className="size-12 rounded-xl bg-slate-900 text-white flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <span className="material-symbols-outlined text-2xl">front_hand</span>
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pessoas Detidas</p>
-            <p className="text-4xl font-black text-white">{currentData.summary.pessoasDetidas}</p>
+            <p className="text-4xl font-black text-slate-900">{currentData.summary.pessoasDetidas}</p>
           </div>
-          <div className="bg-slate-900 p-6 rounded-2xl shadow-lg shadow-slate-900/20 border border-slate-800 flex flex-col justify-center transition-all hover:scale-[1.02] group">
-            <div className="size-12 rounded-xl bg-white/10 text-white flex items-center justify-center mb-4 group-hover:bg-white group-hover:text-slate-900 transition-all">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center transition-all hover:bg-slate-50/80 group">
+            <div className="size-12 rounded-xl bg-slate-900 text-white flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <span className="material-symbols-outlined text-2xl">gavel</span>
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mandados Judiciais</p>
-            <p className="text-4xl font-black text-white">{currentData.summary.mandados}</p>
+            <p className="text-4xl font-black text-slate-900">{currentData.summary.mandados}</p>
           </div>
         </div>
 
@@ -247,133 +247,50 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
 
         <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-tor-blue/20 to-transparent skew-x-12 translate-x-40"></div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-x-4 md:gap-x-8 gap-y-6 relative z-10 w-full">
+
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-8 gap-y-6 relative z-10 w-full">
           {[
             { label: 'Autos de Infr.', value: currentData.summary.autos },
             { label: 'ARVC', value: currentData.summary.arvc },
             { label: 'Recusa IGP', value: currentData.summary.recusaIgp },
-            { label: 'Multa ADM Posse de Drogas', value: currentData.summary.multaAdm },
             { label: 'Ret. CNH/CLA', value: currentData.summary.retencoes },
             { label: 'Abordagens Pess.', value: currentData.summary.abordagens },
             { label: 'Abordagens Veic.', value: currentData.summary.abordagensVeic },
           ].map((item) => (
 
-            <div key={item.label} className="text-center flex flex-col justify-end h-full">
-              <p className="text-[10px] md:text-[11px] font-medium text-slate-400 uppercase tracking-[0.1em] md:tracking-[0.15em] mb-1.5 opacity-90 leading-tight">
-                {item.label}
-              </p>
-              <p className="text-xl md:text-2xl font-black text-white">{item.value}</p>
+            <div key={item.label} className="text-center">
+              <p className="text-[11px] font-medium text-slate-400 uppercase tracking-[0.15em] mb-1.5 opacity-90">{item.label}</p>
+              <p className="text-2xl font-black text-white">{item.value}</p>
             </div>
 
           ))}
         </div>
-      </footer>
 
-      {/* Resumo Final - Agora separado em seu próprio container */}
-      <section className="bg-white rounded-[24px] md:rounded-3xl p-6 md:p-8 border border-slate-200 shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-tor-blue/5 rounded-full -mr-16 -mt-16"></div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-6">
-            <span className="material-symbols-outlined text-tor-blue">summarize</span>
-            <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em]">Resumo Operacional</h3>
+
+
+
+        {/* Resumo Final */}
+        <section className="mt-12 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-tor-blue/5 rounded-full -mr-16 -mt-16"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="material-symbols-outlined text-tor-blue">summarize</span>
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em]">Resumo Operacional</h3>
+            </div>
+            <p className="text-slate-600 text-sm leading-relaxed font-medium">
+              No período compreendido entre <span className="font-bold text-slate-900">{startDate.toLocaleDateString()}</span> e <span className="font-bold text-slate-900">{endDate.toLocaleDateString()}</span>,
+              o efetivo do Tático Ostensivo Rodoviário (TOR) realizou a abordagem de <span className="font-bold text-slate-800">{currentData.summary.abordagens}</span> pessoas
+              e <span className="font-bold text-slate-800">{currentData.summary.abordagensVeic}</span> veículos.
+              Como resultado das ações de fiscalização e combate ao crime, foram lavrados <span className="font-bold text-slate-800">{currentData.summary.autos}</span> autos de infração
+              e efetuadas <span className="font-bold text-slate-800">{currentData.summary.prisoes}</span> prisões em flagrante/detenções,
+              além do cumprimento de <span className="font-bold text-slate-800">{currentData.summary.mandados}</span> mandados judiciais.
+              A produtividade reflete o compromisso contínuo com a segurança viária e o combate ao crime organizado nas rodovias estaduais.
+            </p>
           </div>
-          <p className="text-slate-600 text-sm leading-relaxed font-medium">
-            {(() => {
-              const cleanVal = (val: string | undefined) => {
-                if (!val) return 0;
-                return parseInt(val.replace(/\./g, '').replace(',', '')) || 0;
-              };
-              const cleanMoney = (val: string | undefined) => {
-                if (!val) return 0;
-                return parseFloat(val.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
-              };
+        </section>
 
-              const presos = cleanVal(currentData.summary.pessoasDetidas);
-              const mandados = cleanVal(currentData.summary.mandados);
-
-              const veiculosVal = currentData.seizures.find(s => s.label === 'Veículos Recup.')?.value;
-              const veiculos = cleanVal(veiculosVal);
-
-              const armasVal = currentData.seizures.find(s => s.label === 'Armas')?.value;
-              const armas = cleanVal(armasVal);
-
-              const municoesVal = currentData.seizures.find(s => s.label === 'Munições')?.value;
-              const municoes = cleanVal(municoesVal);
-
-              const dinheiroVal = currentData.seizures.find(s => s.label === 'Dinheiro (R$)')?.value;
-              const dinheiro = cleanMoney(dinheiroVal);
-
-              const mercadoriasVal = currentData.seizures.find(s => s.label === 'Mercadorias (R$)')?.value;
-              const mercadorias = cleanMoney(mercadoriasVal);
-
-              const elements: React.ReactNode[] = [];
-
-              // Intro
-              elements.push(
-                <span key="intro">
-                  No período compreendido entre <span className="font-bold text-slate-900">{startDate.toLocaleDateString()}</span> e <span className="font-bold text-slate-900">{endDate.toLocaleDateString()}</span>,
-                  o Tático Ostensivo Rodoviário (TOR) intensificou suas operações de combate ao crime.
-                </span>
-              );
-
-              // Prisões e Mandados
-              const arrestParts: React.ReactNode[] = [];
-              if (presos > 0) arrestParts.push(<span key="presos">foram presas <span className="font-bold text-slate-800">{currentData.summary.pessoasDetidas}</span> pessoas</span>);
-              if (mandados > 0) arrestParts.push(<span key="mandados">cumpridos <span className="font-bold text-slate-800">{currentData.summary.mandados}</span> mandados de prisão</span>);
-
-              if (arrestParts.length > 0) {
-                elements.push(
-                  <span key="arrests">
-                    Como resultado, {arrestParts.reduce((prev, curr, i) => [prev, i === arrestParts.length - 1 ? ' e ' : ', ', curr])}.
-                  </span>
-                );
-              }
-
-              // Veículos
-              if (veiculos > 0) {
-                elements.push(
-                  <span key="veiculos">
-                    As ações também resultaram na recuperação de <span className="font-bold text-slate-800">{veiculosVal}</span> veículos com registro de furto/roubo.
-                  </span>
-                );
-              }
-
-              // Armas e Munições
-              const weaponParts: React.ReactNode[] = [];
-              if (armas > 0) weaponParts.push(<span key="armas"><span className="font-bold text-slate-800">{armasVal}</span> armas de fogo</span>);
-              if (municoes > 0) weaponParts.push(<span key="municoes"><span className="font-bold text-slate-800">{municoesVal}</span> munições</span>);
-
-              if (weaponParts.length > 0) {
-                elements.push(
-                  <span key="weapons">
-                    Além disso, foram retiradas de circulação {weaponParts.reduce((prev, curr, i) => [prev, i === weaponParts.length - 1 ? ' e ' : ', ', curr])}.
-                  </span>
-                );
-              }
-
-              // Dinheiro e Mercadorias
-              const moneyParts: React.ReactNode[] = [];
-              if (dinheiro > 0) moneyParts.push(<span key="dinheiro"><span className="font-bold text-slate-800">R$ {dinheiroVal}</span> em espécie</span>);
-              if (mercadorias > 0) moneyParts.push(<span key="mercadorias"><span className="font-bold text-slate-800">R$ {mercadoriasVal}</span> em mercadorias de descaminho/contrabando</span>);
-
-              if (moneyParts.length > 0) {
-                elements.push(
-                  <span key="money">
-                    O prejuízo ao crime organizado também se deu pela apreensão de {moneyParts.reduce((prev, curr, i) => [prev, i === moneyParts.length - 1 ? ' e ' : ', ', curr])}.
-                  </span>
-                );
-              }
-
-              // Fallback se nada aconteceu
-              if (elements.length === 1) { // Só tem a intro
-                elements.push(<span key="fallback">O patrulhamento tático foi mantido com o objetivo de garantir a ordem e a segurança nas rodovias estaduais.</span>);
-              }
-
-              return elements;
-            })()}
-          </p>
-        </div>
-      </section>
+      </footer>
     </div>
 
   );

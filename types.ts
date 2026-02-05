@@ -31,16 +31,13 @@ export interface OperationalTeam {
   members: { name: string; role: string; icon: string }[];
   color: string;
 }
-export interface PersonnelAbsence {
+
+export interface UserProfile {
   id: string;
-  personnel_id: string;
-  type: string;
-  start_date: string;
-  end_date: string;
-  description?: string;
+  email: string;
+  full_name: string | null;
+  role: 'admin' | 'editor' | 'viewer';
+  is_active: boolean;
   created_at: string;
-  personnel?: {
-    name: string;
-    graduation: string;
-  };
+  updated_at: string;
 }
