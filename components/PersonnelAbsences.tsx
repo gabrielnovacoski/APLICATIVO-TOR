@@ -190,7 +190,7 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                         <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest">Nenhum policial afastado</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 min-[440px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
+                    <div className="grid grid-cols-1 min-[440px]:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                         {absences.map((absence) => {
                             const config = getAbsenceConfig(absence.type);
                             const active = isActiveAbsence(absence.start_date, absence.end_date);
@@ -214,20 +214,20 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                             return (
                                 <div key={absence.id} className={`group relative bg-white border ${statusBorder} ${active ? 'ring-2 ring-' + statusColor + '/10 shadow-lg' : 'border-emerald-500/30 bg-emerald-50/10'} rounded-xl p-2.5 md:p-3 hover:shadow-md transition-all flex flex-col justify-between min-h-[110px]`}>
                                     <div className="flex justify-between items-start mb-2">
-                                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                                            <div className={`size-7 md:size-8 rounded-lg ${active ? statusBg + ' text-white' : config.bgColor + ' ' + config.color} flex items-center justify-center shrink-0 shadow-sm`}>
-                                                <span className="material-symbols-outlined text-sm md:text-lg filled-icon">{config.icon}</span>
+                                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                            <div className={`size-9 md:size-10 rounded-lg ${active ? statusBg + ' text-white' : config.bgColor + ' ' + config.color} flex items-center justify-center shrink-0 shadow-sm`}>
+                                                <span className="material-symbols-outlined text-lg md:text-xl filled-icon">{config.icon}</span>
                                             </div>
                                             <div className="flex flex-col min-w-0">
                                                 <div className="flex items-center gap-1.5 mb-0.5">
-                                                    <span className={`text-[7px] md:text-[8px] font-black uppercase tracking-widest truncate ${active ? statusText : config.color}`}>
+                                                    <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest truncate ${active ? statusText : config.color}`}>
                                                         {absence.type}
                                                     </span>
                                                     {active && (
-                                                        <span className={`${statusBg} text-white text-[6px] font-black px-1 rounded-sm animate-pulse whitespace-nowrap`}>EM VIGOR</span>
+                                                        <span className={`${statusBg} text-white text-[8px] md:text-[9px] font-black px-1.5 rounded-sm animate-pulse whitespace-nowrap`}>EM VIGOR</span>
                                                     )}
                                                 </div>
-                                                <h4 className="text-slate-900 font-black text-[10px] md:text-[11px] uppercase leading-tight truncate">
+                                                <h4 className="text-slate-900 font-black text-[13px] md:text-sm uppercase leading-tight truncate">
                                                     {absence.personnel?.graduation} {absence.personnel?.name}
                                                 </h4>
                                             </div>
@@ -244,19 +244,19 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                                         )}
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-1.5 bg-slate-50 rounded-lg p-1.5 border border-slate-100/50">
-                                            <span className="material-symbols-outlined text-slate-400 text-xs shrink-0">calendar_month</span>
+                                    <div className="space-y-2.5">
+                                        <div className="flex items-center gap-2 bg-slate-50 rounded-lg p-2 border border-slate-100/50">
+                                            <span className="material-symbols-outlined text-slate-400 text-sm shrink-0">calendar_month</span>
                                             <div className="flex flex-col min-w-0">
-                                                <p className="text-[7px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Período</p>
-                                                <p className="text-[9px] font-bold text-slate-700 leading-tight">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Período</p>
+                                                <p className="text-[11px] md:text-xs font-bold text-slate-700 leading-tight">
                                                     {formatDate(absence.start_date)} — {formatDate(absence.end_date)}
                                                 </p>
                                             </div>
                                         </div>
 
                                         {absence.description && (
-                                            <p className="text-[8px] text-slate-500 italic px-1 truncate" title={absence.description}>"{absence.description}"</p>
+                                            <p className="text-[10px] md:text-xs text-slate-500 italic px-1 truncate" title={absence.description}>"{absence.description}"</p>
                                         )}
                                     </div>
                                 </div>
