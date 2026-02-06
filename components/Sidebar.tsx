@@ -122,9 +122,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, isLoggedIn,
               />
             </div>
             <div className="min-w-0 flex-1 text-left">
-              <p className="text-sm font-bold truncate leading-tight">Gestor - TOR CPMRv</p>
+              <p className="text-sm font-bold truncate leading-tight uppercase">Gestor</p>
               <p className={`text-[9px] uppercase font-black tracking-tighter opacity-70 ${isLoggedIn ? 'text-emerald-500' : 'text-slate-400'}`}>
-                {isLoggedIn ? 'ADMINISTRADOR ON' : 'CPMRv - SC'}
+                {isLoggedIn ? 'ADMINISTRADOR ON' : 'TOR - CPMRv'}
               </p>
             </div>
             <span className={`material-symbols-outlined text-lg ${isLoggedIn ? 'text-emerald-500' : 'text-slate-500'}`}>
