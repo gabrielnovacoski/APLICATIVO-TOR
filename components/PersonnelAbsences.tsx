@@ -156,6 +156,11 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
         return today >= start && today <= end;
     };
 
+    const activeAbsences = absences.filter(a => isActiveAbsence(a.start_date, a.end_date));
+    const totalActive = activeAbsences.length;
+    const vacationsActive = activeAbsences.filter(a => a.type === 'Férias').length;
+    const medicalActive = totalActive - vacationsActive;
+
     if (loading && absences.length === 0) {
         return <div className="p-8 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Carregando afastamentos...</div>;
     }
@@ -184,6 +189,38 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
             </div>
 
             <div className="p-3 md:p-6">
+                {/* Dashboard de Insights */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                    <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 flex items-center gap-4 transition-all hover:shadow-sm">
+                        <div className="size-12 rounded-xl bg-slate-200/50 text-slate-500 flex items-center justify-center shadow-inner">
+                            <span className="material-symbols-outlined text-2xl">person_off</span>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">Total Afastados</p>
+                            <p className="text-2xl font-black text-slate-900">{totalActive}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-orange-50/30 rounded-2xl p-4 border border-orange-100/50 flex items-center gap-4 transition-all hover:shadow-sm">
+                        <div className="size-12 rounded-xl bg-orange-100/50 text-orange-500 flex items-center justify-center shadow-inner">
+                            <span className="material-symbols-outlined text-2xl filled-icon">beach_access</span>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-orange-400/80 font-black uppercase tracking-widest leading-none mb-1">Em Férias</p>
+                            <p className="text-2xl font-black text-slate-900">{vacationsActive}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-red-50/30 rounded-2xl p-4 border border-red-100/50 flex items-center gap-4 transition-all hover:shadow-sm">
+                        <div className="size-12 rounded-xl bg-red-100/50 text-red-500 flex items-center justify-center shadow-inner">
+                            <span className="material-symbols-outlined text-2xl filled-icon">medical_services</span>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-red-400/80 font-black uppercase tracking-widest leading-none mb-1">Atestado/Licença</p>
+                            <p className="text-2xl font-black text-slate-900">{medicalActive}</p>
+                        </div>
+                    </div>
+                </div>
                 {absences.length === 0 ? (
                     <div className="text-center py-6 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
                         <span className="material-symbols-outlined text-2xl text-slate-300 mb-1">person_off</span>
