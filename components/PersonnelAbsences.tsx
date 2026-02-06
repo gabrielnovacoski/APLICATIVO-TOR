@@ -195,20 +195,36 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                             const config = getAbsenceConfig(absence.type);
                             const active = isActiveAbsence(absence.start_date, absence.end_date);
 
+                            // Lógica de cores conforme solicitação:
+                            // Ativo (em vigor): Férias = Laranja, Outros = Vermelho
+                            // Inativo (trabalhando/fora do período): Verde
+                            const statusColor = active
+                                ? (absence.type === 'Férias' ? 'orange-500' : 'red-500')
+                                : 'emerald-500';
+                            const statusBg = active
+                                ? (absence.type === 'Férias' ? 'bg-orange-500' : 'bg-red-500')
+                                : 'bg-emerald-500';
+                            const statusBorder = active
+                                ? (absence.type === 'Férias' ? 'border-orange-500' : 'border-red-500')
+                                : 'border-emerald-500';
+                            const statusText = active
+                                ? (absence.type === 'Férias' ? 'text-orange-600' : 'text-red-600')
+                                : 'text-emerald-600';
+
                             return (
-                                <div key={absence.id} className={`group relative bg-white border ${active ? 'border-emerald-500 ring-2 ring-emerald-500/10 shadow-lg' : 'border-slate-200'} rounded-xl p-2.5 md:p-3 hover:shadow-md transition-all flex flex-col justify-between min-h-[110px]`}>
+                                <div key={absence.id} className={`group relative bg-white border ${active ? statusBorder + ' ring-2 ring-' + statusColor + '/10 shadow-lg' : 'border-slate-200'} rounded-xl p-2.5 md:p-3 hover:shadow-md transition-all flex flex-col justify-between min-h-[110px]`}>
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                                            <div className={`size-7 md:size-8 rounded-lg ${active ? 'bg-emerald-500 text-white' : config.bgColor + ' ' + config.color} flex items-center justify-center shrink-0 shadow-sm`}>
+                                            <div className={`size-7 md:size-8 rounded-lg ${active ? statusBg + ' text-white' : config.bgColor + ' ' + config.color} flex items-center justify-center shrink-0 shadow-sm`}>
                                                 <span className="material-symbols-outlined text-sm md:text-lg filled-icon">{config.icon}</span>
                                             </div>
                                             <div className="flex flex-col min-w-0">
                                                 <div className="flex items-center gap-1.5 mb-0.5">
-                                                    <span className={`text-[7px] md:text-[8px] font-black uppercase tracking-widest truncate ${active ? 'text-emerald-600' : config.color}`}>
+                                                    <span className={`text-[7px] md:text-[8px] font-black uppercase tracking-widest truncate ${active ? statusText : config.color}`}>
                                                         {absence.type}
                                                     </span>
                                                     {active && (
-                                                        <span className="bg-emerald-500 text-white text-[6px] font-black px-1 rounded-sm animate-pulse whitespace-nowrap">EM VIGOR</span>
+                                                        <span className={`${statusBg} text-white text-[6px] font-black px-1 rounded-sm animate-pulse whitespace-nowrap`}>EM VIGOR</span>
                                                     )}
                                                 </div>
                                                 <h4 className="text-slate-900 font-black text-[10px] md:text-[11px] uppercase leading-tight truncate">
