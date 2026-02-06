@@ -208,7 +208,7 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                                                         {absence.type}
                                                     </span>
                                                     {active && (
-                                                        <span className="bg-emerald-500 text-white text-[6px] font-black px-1 rounded-sm animate-pulse whitespace-nowrap">EM CURSO</span>
+                                                        <span className="bg-emerald-500 text-white text-[6px] font-black px-1 rounded-sm animate-pulse whitespace-nowrap">EM VIGOR</span>
                                                     )}
                                                 </div>
                                                 <h4 className="text-slate-900 font-black text-[10px] md:text-[11px] uppercase leading-tight truncate">
