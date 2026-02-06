@@ -208,7 +208,7 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                                 ? (absence.type === 'Férias' ? 'border-orange-500' : 'border-red-500')
                                 : 'border-emerald-500';
                             const statusText = active
-                                ? (absence.type === 'Férias' ? 'text-orange-600' : 'text-red-600')
+                                ? (absence.type === 'Férias' ? 'text-emerald-600' : 'text-red-600')
                                 : 'text-emerald-600';
 
                             return (
