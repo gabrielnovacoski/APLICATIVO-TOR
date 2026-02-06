@@ -134,6 +134,28 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
         return `${day}/${month}/${year}`;
     };
 
+    const getAbsenceConfig = (type: string) => {
+        switch (type) {
+            case 'Férias': return { icon: 'beach_access', color: 'text-orange-500', bgColor: 'bg-orange-50' };
+            case 'Atestado': return { icon: 'description', color: 'text-blue-500', bgColor: 'bg-blue-50' };
+            case 'Licença Médica': return { icon: 'medical_services', color: 'text-red-500', bgColor: 'bg-red-50' };
+            case 'Licença Especial': return { icon: 'military_tech', color: 'text-purple-500', bgColor: 'bg-purple-50' };
+            case 'Curso': return { icon: 'school', color: 'text-emerald-500', bgColor: 'bg-emerald-50' };
+            default: return { icon: 'more_horiz', color: 'text-slate-500', bgColor: 'bg-slate-50' };
+        }
+    };
+
+    const isActiveAbsence = (startDate: string, endDate: string) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Ajuste para evitar problemas de fuso horário na comparação direta
+        const start = new Date(startDate + 'T12:00:00');
+        const end = new Date(endDate + 'T12:00:00');
+
+        return today >= start && today <= end;
+    };
+
     if (loading && absences.length === 0) {
         return <div className="p-8 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Carregando afastamentos...</div>;
     }
@@ -169,154 +191,171 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 min-[440px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
-                        {absences.map((absence) => (
-                            <div key={absence.id} className="group relative bg-white border border-slate-200 rounded-xl p-2.5 md:p-3 hover:shadow-md transition-all flex flex-col justify-between min-h-[110px]">
-                                <div className="flex justify-between items-start mb-2">
-                                    <div className="flex flex-col min-w-0 flex-1">
-                                        <span className="text-[7px] md:text-[8px] font-black text-orange-500 uppercase tracking-widest mb-0.5 truncate">{absence.type}</span>
-                                        <h4 className="text-slate-900 font-black text-[10px] md:text-[11px] uppercase leading-tight truncate">
-                                            {absence.personnel?.graduation} {absence.personnel?.name}
-                                        </h4>
-                                    </div>
-                                    {isLoggedIn && (
-                                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                            <button onClick={() => handleEdit(absence)} className="size-5 rounded bg-slate-100 text-slate-500 hover:bg-tor-blue hover:text-white flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-[10px]">edit</span>
-                                            </button>
-                                            <button onClick={() => handleDelete(absence.id)} className="size-5 rounded bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-[10px]">delete</span>
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                        {absences.map((absence) => {
+                            const config = getAbsenceConfig(absence.type);
+                            const active = isActiveAbsence(absence.start_date, absence.end_date);
 
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-1.5 bg-slate-50 rounded-lg p-1.5 border border-slate-100/50">
-                                        <span className="material-symbols-outlined text-slate-400 text-xs shrink-0">calendar_month</span>
-                                        <div className="flex flex-col min-w-0">
-                                            <p className="text-[7px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Período</p>
-                                            <p className="text-[9px] font-bold text-slate-700 leading-tight">
-                                                {formatDate(absence.start_date)} — {formatDate(absence.end_date)}
-                                            </p>
+                            return (
+                                <div key={absence.id} className={`group relative bg-white border ${active ? 'border-emerald-500 ring-2 ring-emerald-500/10 shadow-lg' : 'border-slate-200'} rounded-xl p-2.5 md:p-3 hover:shadow-md transition-all flex flex-col justify-between min-h-[110px]`}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            <div className={`size-7 md:size-8 rounded-lg ${active ? 'bg-emerald-500 text-white' : config.bgColor + ' ' + config.color} flex items-center justify-center shrink-0 shadow-sm`}>
+                                                <span className="material-symbols-outlined text-sm md:text-lg filled-icon">{config.icon}</span>
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <div className="flex items-center gap-1.5 mb-0.5">
+                                                    <span className={`text-[7px] md:text-[8px] font-black uppercase tracking-widest truncate ${active ? 'text-emerald-600' : config.color}`}>
+                                                        {absence.type}
+                                                    </span>
+                                                    {active && (
+                                                        <span className="bg-emerald-500 text-white text-[6px] font-black px-1 rounded-sm animate-pulse whitespace-nowrap">EM CURSO</span>
+                                                    )}
+                                                </div>
+                                                <h4 className="text-slate-900 font-black text-[10px] md:text-[11px] uppercase leading-tight truncate">
+                                                    {absence.personnel?.graduation} {absence.personnel?.name}
+                                                </h4>
+                                            </div>
                                         </div>
+                                        {isLoggedIn && (
+                                            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                                <button onClick={() => handleEdit(absence)} className="size-5 rounded bg-slate-100 text-slate-500 hover:bg-tor-blue hover:text-white flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-[10px]">edit</span>
+                                                </button>
+                                                <button onClick={() => handleDelete(absence.id)} className="size-5 rounded bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-[10px]">delete</span>
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {absence.description && (
-                                        <p className="text-[8px] text-slate-500 italic px-1 truncate" title={absence.description}>"{absence.description}"</p>
-                                    )}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-1.5 bg-slate-50 rounded-lg p-1.5 border border-slate-100/50">
+                                            <span className="material-symbols-outlined text-slate-400 text-xs shrink-0">calendar_month</span>
+                                            <div className="flex flex-col min-w-0">
+                                                <p className="text-[7px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Período</p>
+                                                <p className="text-[9px] font-bold text-slate-700 leading-tight">
+                                                    {formatDate(absence.start_date)} — {formatDate(absence.end_date)}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {absence.description && (
+                                            <p className="text-[8px] text-slate-500 italic px-1 truncate" title={absence.description}>"{absence.description}"</p>
+                                        )}
+                                    </div>
+                                    );
+                        })}
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            )
+                        }
             </div>
 
             {/* Modal Adicionar/Editar */}
-            {showAddModal && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white rounded-[32px] shadow-2xl max-w-md w-full overflow-hidden border border-white/20 animate-in zoom-in-95 duration-300">
-                        <div className="bg-tor-dark p-6 text-white flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <div className="size-10 bg-white/10 rounded-xl flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-orange-400">{editingAbsence ? 'edit' : 'add'}</span>
+                {showAddModal && (
+                    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="bg-white rounded-[32px] shadow-2xl max-w-md w-full overflow-hidden border border-white/20 animate-in zoom-in-95 duration-300">
+                            <div className="bg-tor-dark p-6 text-white flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="size-10 bg-white/10 rounded-xl flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-orange-400">{editingAbsence ? 'edit' : 'add'}</span>
+                                    </div>
+                                    <h3 className="text-lg font-black uppercase tracking-tight">
+                                        {editingAbsence ? 'Editar Afastamento' : 'Novo Afastamento'}
+                                    </h3>
                                 </div>
-                                <h3 className="text-lg font-black uppercase tracking-tight">
-                                    {editingAbsence ? 'Editar Afastamento' : 'Novo Afastamento'}
-                                </h3>
+                                <button onClick={handleCloseModal} className="hover:bg-white/10 p-2 rounded-full transition-colors">
+                                    <span className="material-symbols-outlined text-2xl">close</span>
+                                </button>
                             </div>
-                            <button onClick={handleCloseModal} className="hover:bg-white/10 p-2 rounded-full transition-colors">
-                                <span className="material-symbols-outlined text-2xl">close</span>
-                            </button>
+
+                            <form onSubmit={handleSave} className="p-8 space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Policial</label>
+                                    <select
+                                        required
+                                        className="w-full bg-slate-50 border-2 border-slate-100 focus:border-tor-blue rounded-2xl px-4 py-3 text-sm font-bold"
+                                        value={formData.personnel_id}
+                                        onChange={e => setFormData({ ...formData, personnel_id: e.target.value })}
+                                    >
+                                        <option value="">Selecione o Policial</option>
+                                        {personnel.map(p => (
+                                            <option key={p.id} value={p.id}>{p.graduation} {p.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Afastamento</label>
+                                    <select
+                                        required
+                                        className="w-full bg-slate-50 border-2 border-slate-100 focus:border-tor-blue rounded-2xl px-4 py-3 text-sm font-bold"
+                                        value={formData.type}
+                                        onChange={e => setFormData({ ...formData, type: e.target.value })}
+                                    >
+                                        <option value="Férias">Férias</option>
+                                        <option value="Atestado">Atestado</option>
+                                        <option value="Licença Médica">Licença Médica</option>
+                                        <option value="Licença Especial">Licença Especial</option>
+                                        <option value="Curso">Curso</option>
+                                        <option value="Outros">Outros</option>
+                                    </select>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Início</label>
+                                        <input
+                                            type="date"
+                                            required
+                                            className="w-full bg-slate-50 border-2 border-slate-100 focus:border-tor-blue rounded-2xl px-4 py-3 text-sm font-bold"
+                                            value={formData.start_date}
+                                            onChange={e => setFormData({ ...formData, start_date: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Término</label>
+                                        <input
+                                            type="date"
+                                            required
+                                            className="w-full bg-slate-50 border-2 border-slate-100 focus:border-tor-blue rounded-2xl px-4 py-3 text-sm font-bold"
+                                            value={formData.end_date}
+                                            onChange={e => setFormData({ ...formData, end_date: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Observações (Opcional)</label>
+                                    <textarea
+                                        className="w-full bg-slate-50 border-2 border-slate-100 focus:border-tor-blue rounded-2xl px-4 py-3 text-sm font-bold resize-none"
+                                        rows={2}
+                                        value={formData.description}
+                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        type="submit"
+                                        disabled={isSaving}
+                                        className="flex-1 bg-tor-dark text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-all shadow-xl shadow-tor-dark/20 disabled:opacity-50"
+                                    >
+                                        {isSaving ? 'Salvando...' : 'Salvar Afastamento'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseModal}
+                                        className="flex-1 text-slate-400 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:text-slate-600 transition-all"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-
-                        <form onSubmit={handleSave} className="p-8 space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Policial</label>
-                                <select
-                                    required
-                                    className="w-full bg-slate-50 border-2 border-slate-100 focus:border-tor-blue rounded-2xl px-4 py-3 text-sm font-bold"
-                                    value={formData.personnel_id}
-                                    onChange={e => setFormData({ ...formData, personnel_id: e.target.value })}
-                                >
-                                    <option value="">Selecione o Policial</option>
-                                    {personnel.map(p => (
-                                        <option key={p.id} value={p.id}>{p.graduation} {p.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Afastamento</label>
-                                <select
-                                    required
-                                    className="w-full bg-slate-50 border-2 border-slate-100 focus:border-tor-blue rounded-2xl px-4 py-3 text-sm font-bold"
-                                    value={formData.type}
-                                    onChange={e => setFormData({ ...formData, type: e.target.value })}
-                                >
-                                    <option value="Férias">Férias</option>
-                                    <option value="Atestado">Atestado</option>
-                                    <option value="Licença Médica">Licença Médica</option>
-                                    <option value="Licença Especial">Licença Especial</option>
-                                    <option value="Curso">Curso</option>
-                                    <option value="Outros">Outros</option>
-                                </select>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Início</label>
-                                    <input
-                                        type="date"
-                                        required
-                                        className="w-full bg-slate-50 border-2 border-slate-100 focus:border-tor-blue rounded-2xl px-4 py-3 text-sm font-bold"
-                                        value={formData.start_date}
-                                        onChange={e => setFormData({ ...formData, start_date: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Término</label>
-                                    <input
-                                        type="date"
-                                        required
-                                        className="w-full bg-slate-50 border-2 border-slate-100 focus:border-tor-blue rounded-2xl px-4 py-3 text-sm font-bold"
-                                        value={formData.end_date}
-                                        onChange={e => setFormData({ ...formData, end_date: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Observações (Opcional)</label>
-                                <textarea
-                                    className="w-full bg-slate-50 border-2 border-slate-100 focus:border-tor-blue rounded-2xl px-4 py-3 text-sm font-bold resize-none"
-                                    rows={2}
-                                    value={formData.description}
-                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    type="submit"
-                                    disabled={isSaving}
-                                    className="flex-1 bg-tor-dark text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-all shadow-xl shadow-tor-dark/20 disabled:opacity-50"
-                                >
-                                    {isSaving ? 'Salvando...' : 'Salvar Afastamento'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleCloseModal}
-                                    className="flex-1 text-slate-400 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:text-slate-600 transition-all"
-                                >
-                                    Cancelar
-                                </button>
-                            </div>
-                        </form>
                     </div>
-                </div>
-            )}
-        </div>
-    );
+                )}
+            </div>
+            );
 };
 
-export default PersonnelAbsences;
+            export default PersonnelAbsences;
