@@ -415,27 +415,27 @@ const App: React.FC = () => {
         </main>
 
 
-        <footer className="px-8 py-10 flex items-center justify-between border-t border-slate-200/50 bg-white/30">
-          <div className="flex items-center gap-6">
+        <footer className="px-4 md:px-8 py-8 md:py-10 flex flex-col md:flex-row items-center justify-between gap-8 border-t border-slate-200/50 bg-white/30">
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-center md:text-left">
             <img
               src={cpmrvCrestUrl}
               alt="Brasão PMRv SC"
-              className="h-16 w-auto drop-shadow-md"
+              className="h-14 md:h-16 w-auto drop-shadow-md"
             />
             <div className="flex flex-col">
-              <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.15em] leading-tight whitespace-nowrap">
+              <p className="text-[10px] md:text-[9px] text-slate-500 md:text-slate-400 font-black uppercase tracking-[0.1em] md:tracking-[0.15em] leading-tight max-w-[280px] md:max-w-none">
                 COMANDO DE POLÍCIA MILITAR RODOVIÁRIA DE SANTA CATARINA
               </p>
-              <p className="text-[8px] text-slate-400 font-black uppercase tracking-[0.15em] leading-tight opacity-80">
+              <p className="text-[9px] md:text-[8px] text-slate-400 font-black uppercase tracking-[0.1em] md:tracking-[0.15em] leading-tight opacity-80 mt-1 md:mt-0">
                 TOR - TÁTICO OSTENSIVO RODOVIÁRIO
               </p>
             </div>
           </div>
-          <div className="text-right flex flex-col justify-center">
-            <p className="text-[7px] text-slate-400 font-black uppercase tracking-[0.15em] leading-tight opacity-70">
+          <div className="text-center md:text-right flex flex-col justify-center gap-1">
+            <p className="text-[8px] md:text-[7px] text-slate-400 font-black uppercase tracking-[0.15em] leading-tight opacity-70">
               DADOS ATUALIZADOS EM:
             </p>
-            <p className="text-[7px] text-slate-400 font-black uppercase tracking-[0.15em] leading-tight">
+            <p className="text-[9px] md:text-[7px] text-slate-500 md:text-slate-400 font-black uppercase tracking-[0.15em] leading-tight">
               {now.toLocaleDateString('pt-BR')} {now.getHours()}:{now.getMinutes().toString().padStart(2, '0')}
             </p>
           </div>
