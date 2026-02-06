@@ -212,7 +212,7 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                                 : 'text-emerald-600';
 
                             return (
-                                <div key={absence.id} className={`group relative bg-white border ${statusBorder} ${active ? 'ring-2 ring-' + statusColor + '/10 shadow-lg' : 'border-emerald-500/30 bg-emerald-50/10'} rounded-xl p-2.5 md:p-3 hover:shadow-md transition-all flex flex-col justify-between min-h-[110px]`}>
+                                <div key={absence.id} className={`group relative bg-white border ${statusBorder} ${active ? 'ring-2 ring-' + statusColor + '/10 shadow-lg' : 'border-emerald-500/30 bg-emerald-50/10'} rounded-xl p-3 md:p-4 hover:shadow-md transition-all flex flex-col justify-between min-h-[135px]`}>
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-3 min-w-0 flex-1">
                                             <div className={`size-9 md:size-10 rounded-lg ${active ? statusBg + ' text-white' : config.bgColor + ' ' + config.color} flex items-center justify-center shrink-0 shadow-sm`}>
