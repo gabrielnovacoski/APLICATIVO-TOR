@@ -352,9 +352,10 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                             </div>
                         </form>
                     </div>
-            )}
                 </div>
-            );
-    };
+            )}
+        </div>
+    );
+};
 
-            export default PersonnelAbsences;
+export default PersonnelAbsences;
