@@ -136,7 +136,7 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
 
     const getAbsenceConfig = (type: string) => {
         switch (type) {
-            case 'Férias': return { icon: 'beach_access', color: 'text-orange-500', bgColor: 'bg-orange-50' };
+            case 'Férias': return { icon: 'beach_access', color: 'text-emerald-500', bgColor: 'bg-orange-50' };
             case 'Atestado': return { icon: 'description', color: 'text-blue-500', bgColor: 'bg-blue-50' };
             case 'Licença Médica': return { icon: 'medical_services', color: 'text-red-500', bgColor: 'bg-red-50' };
             case 'Licença Especial': return { icon: 'military_tech', color: 'text-purple-500', bgColor: 'bg-purple-50' };
