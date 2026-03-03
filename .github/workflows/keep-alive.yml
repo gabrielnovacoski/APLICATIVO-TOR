@@ -1,0 +1,16 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    - cron: '0 0 * * 1' # Roda toda segunda-feira às 00:00 UTC
+  workflow_dispatch:     # Permite rodar manualmente pelo GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase API
+        run: |
+          curl -X GET "https://dystsudjmawlgsvlccbv.supabase.co/rest/v1/" \
+          -H "apikey: sb_publishable_M75234QWAt5xzqKkT61xew_9_23G3Gq" \
+          -H "Authorization: Bearer sb_publishable_M75234QWAt5xzqKkT61xew_9_23G3Gq"
