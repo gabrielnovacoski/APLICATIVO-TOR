@@ -112,14 +112,56 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
   const fetchData = async () => {
     setLoading(true);
 
-    // Buscar Viaturas
+       // Buscar Viaturas
     const { data: vData } = await supabase.from('vehicles').select('*');
+    
+    let mappedVehicles: Vehicle[] = [];
     if (vData && vData.length > 0) {
-      const mappedVehicles = vData.map(v => ({
+      mappedVehicles = vData.map(v => ({
         ...v,
         oilInterval: v.oil_interval,
         lastOilChangeOdometer: v.last_oil_change_odometer
       }));
+    } else {
+      mappedVehicles = initialVehicles;
+      await supabase.from('vehicles').upsert(initialVehicles.map(v => ({
+        id: v.id,
+        model: v.model,
+        year: v.year,
+        status: v.status,
+        plate: v.plate,
+        odometer: v.odometer,
+        oil_interval: v.oilInterval,
+        last_oil_change_odometer: v.lastOilChangeOdometer
+      })));
+    }
+
+    // SINCRONIZANDO O KM AUTOMATICAMENTE LOGO DEPOIS DE CARREGAR
+    const updatedVehicles = await Promise.all(mappedVehicles.map(async (v) => {
+      try {
+        const latestKm = await fetchLatestVehicleKm(v.id);
+        // Se achou um KM novo diferente do que está no banco atualiza automaticamente!
+        if (latestKm !== null && latestKm !== v.odometer) {
+          await supabase.from('vehicles').update({ odometer: latestKm }).eq('id', v.id);
+          return { ...v, odometer: latestKm };
+        }
+      } catch (error) {
+        console.error('Erro na sincronização automática:', error);
+      }
+      return v;
+    }));
+
+    // Ordenação fixa das viaturas em tela
+    const sortedVehicles = updatedVehicles.sort((a, b) => {
+      if (a.id === 'TOR 0003') return -1;
+      if (b.id === 'TOR 0003') return 1;
+      if (a.id === 'TOR 0004') return -1;
+      if (b.id === 'TOR 0004') return 1;
+      return a.id.localeCompare(b.id);
+    });
+
+    setVehicles(sortedVehicles);
+
 
       // Ordenação fixa: TOR 0003 em primeiro, TOR 0004 em segundo
       const sortedVehicles = mappedVehicles.sort((a, b) => {
