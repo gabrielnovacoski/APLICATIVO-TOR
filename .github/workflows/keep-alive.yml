@@ -5,25 +5,12 @@ on:
     - cron: '0 0 */3 * *' # Roda a cada 3 dias
   workflow_dispatch:     # Permite rodar manualmente pelo GitHub
 
-permissions:
-  contents: write
-
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
-      - name: Ping Supabase API (Arrumado)
+      - name: Ping Supabase API (Arrumado e Simples)
         run: |
           curl -sS -X GET "https://dystsudjmawlgsvlccbv.supabase.co/rest/v1/vehicles?select=id&limit=1" \
           -H "apikey: sb_publishable_M75234QWAt5xzqKkT61xew_9_23G3Gq" \
           -H "Authorization: Bearer sb_publishable_M75234QWAt5xzqKkT61xew_9_23G3Gq"
-
-      - name: Evitar pausa de 60 dias do GitHub
-        uses: gautamkrishnar/keepalive-workflow@v2
-        with:
-          commit_message: "Automated commit: Keep workflow alive"
-          committer_name: "GitHub Actions"
-          committer_email: "actions@github.com"
