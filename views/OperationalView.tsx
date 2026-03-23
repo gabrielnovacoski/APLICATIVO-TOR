@@ -163,30 +163,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
     setVehicles(sortedVehicles);
 
 
-      // Ordenação fixa: TOR 0003 em primeiro, TOR 0004 em segundo
-      const sortedVehicles = mappedVehicles.sort((a, b) => {
-        if (a.id === 'TOR 0003') return -1;
-        if (b.id === 'TOR 0003') return 1;
-        if (a.id === 'TOR 0004') return -1;
-        if (b.id === 'TOR 0004') return 1;
-        return a.id.localeCompare(b.id);
-      });
 
-      setVehicles(sortedVehicles);
-    } else {
-      setVehicles(initialVehicles);
-      await supabase.from('vehicles').upsert(initialVehicles.map(v => ({
-        id: v.id,
-        model: v.model,
-        year: v.year,
-        status: v.status,
-        plate: v.plate,
-        odometer: v.odometer,
-        oil_interval: v.oilInterval,
-        last_oil_change_odometer: v.lastOilChangeOdometer
-      })));
-
-    }
 
     // Buscar Efetivo
     const { data: pData } = await supabase.from('personnel').select('*');
@@ -539,16 +516,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
               <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Sincronizado com Google Sheets</p>
             </div>
           </div>
-          {isLoggedIn && (
-            <button
-              onClick={syncVehicleKm}
-              disabled={isSyncing}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest text-slate-600 disabled:opacity-50"
-            >
-              <span className={`material-symbols-outlined text-sm ${isSyncing ? 'animate-spin' : ''}`}>sync</span>
-              {isSyncing ? 'Sincronizando...' : 'Sincronizar KM'}
-            </button>
-          )}
+          {/* Botão de sincronizar removido pois agora é automático */}
 
         </div>
 
