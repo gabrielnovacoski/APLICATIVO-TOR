@@ -30,7 +30,19 @@ interface Vehicle {
   odometer: number;
   oilInterval: number;
   lastOilChangeOdometer: number;
+  tiresInterval: number;
+  lastTiresChangeOdometer: number;
+  brakesInterval: number;
+  lastBrakesChangeOdometer: number;
   color: string;
+}
+
+interface PersonnelAbsence {
+  id?: string;
+  personnel_id: string;
+  type: string;
+  start_date: string;
+  end_date: string;
 }
 
 const initialTeams: Team[] = [
@@ -75,6 +87,10 @@ const initialVehicles: Vehicle[] = [
     odometer: 12450,
     oilInterval: 10000,
     lastOilChangeOdometer: 10000,
+    tiresInterval: 60000,
+    lastTiresChangeOdometer: 10000,
+    brakesInterval: 40000,
+    lastBrakesChangeOdometer: 10000,
     color: 'tor-blue'
   },
   {
@@ -87,6 +103,10 @@ const initialVehicles: Vehicle[] = [
     odometer: 45892,
     oilInterval: 10000,
     lastOilChangeOdometer: 40000,
+    tiresInterval: 60000,
+    lastTiresChangeOdometer: 40000,
+    brakesInterval: 40000,
+    lastBrakesChangeOdometer: 40000,
     color: 'tor-blue'
   }
 ];
@@ -108,6 +128,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [personnelList, setPersonnelList] = useState<any[]>([]);
+  const [activeAbsences, setActiveAbsences] = useState<PersonnelAbsence[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -120,7 +141,11 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
       mappedVehicles = vData.map(v => ({
         ...v,
         oilInterval: v.oil_interval,
-        lastOilChangeOdometer: v.last_oil_change_odometer
+        lastOilChangeOdometer: v.last_oil_change_odometer,
+        tiresInterval: v.tires_interval || 60000,
+        lastTiresChangeOdometer: v.last_tires_change_odometer || v.odometer,
+        brakesInterval: v.brakes_interval || 40000,
+        lastBrakesChangeOdometer: v.last_brakes_change_odometer || v.odometer
       }));
     } else {
       mappedVehicles = initialVehicles;
@@ -132,7 +157,11 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         plate: v.plate,
         odometer: v.odometer,
         oil_interval: v.oilInterval,
-        last_oil_change_odometer: v.lastOilChangeOdometer
+        last_oil_change_odometer: v.lastOilChangeOdometer,
+        tires_interval: v.tiresInterval,
+        last_tires_change_odometer: v.lastTiresChangeOdometer,
+        brakes_interval: v.brakesInterval,
+        last_brakes_change_odometer: v.lastBrakesChangeOdometer
       })));
     }
 
@@ -168,6 +197,14 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
     // Buscar Efetivo
     const { data: pData } = await supabase.from('personnel').select('*');
     if (pData) setPersonnelList(pData);
+
+    // Buscar Afastamentos Ativos
+    const today = new Date().toISOString().split('T')[0];
+    const { data: aData } = await supabase.from('personnel_absences')
+      .select('*')
+      .lte('start_date', today)
+      .gte('end_date', today);
+    if (aData) setActiveAbsences(aData);
 
     // Buscar Equipes
     const { data: tData } = await supabase.from('operational_teams').select('*');
@@ -305,7 +342,11 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
           plate: editingVehicle.plate,
           odometer: editingVehicle.odometer,
           oil_interval: editingVehicle.oilInterval,
-          last_oil_change_odometer: editingVehicle.lastOilChangeOdometer
+          last_oil_change_odometer: editingVehicle.lastOilChangeOdometer,
+          tires_interval: editingVehicle.tiresInterval,
+          last_tires_change_odometer: editingVehicle.lastTiresChangeOdometer,
+          brakes_interval: editingVehicle.brakesInterval,
+          last_brakes_change_odometer: editingVehicle.lastBrakesChangeOdometer
         });
 
       if (!error) {
@@ -337,16 +378,10 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
 
 
-  const calculateOilLife = (v: Vehicle) => {
-    const lastChange = v.lastOilChangeOdometer || 0;
-    const interval = v.oilInterval || 0;
-    const current = v.odometer || 0;
-
-    const nextChangeKm = lastChange + interval;
-    const remainingKm = nextChangeKm - current;
-    const baseInterval = 10000; // Base de 10.000 km conforme solicitado
-
-    const life = (remainingKm / baseInterval) * 100;
+  const calculateLife = (lastChangeOdo: number, interval: number, currentOdo: number) => {
+    const nextChangeKm = lastChangeOdo + interval;
+    const remainingKm = nextChangeKm - currentOdo;
+    const life = (remainingKm / interval) * 100;
     return Math.max(0, Math.min(100, Math.round(life || 0)));
   };
 
@@ -456,9 +491,19 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                               }}
                             >
                               <option value="">REMOVER POLICIAL</option>
-                              {personnelList.map((p: any) => (
-                                <option key={p.id} value={`${p.graduation} ${p.name}`}>{p.graduation} {p.name}</option>
-                              ))}
+                              {personnelList.map((p: any) => {
+                                const isAbsent = activeAbsences.find(a => a.personnel_id === p.id);
+                                return (
+                                  <option 
+                                    key={p.id} 
+                                    value={`${p.graduation} ${p.name}`}
+                                    disabled={!!isAbsent}
+                                    style={isAbsent ? { color: '#ef4444' } : {}}
+                                  >
+                                    {p.graduation} {p.name} {isAbsent ? `(Afastado: ${isAbsent.type})` : ''}
+                                  </option>
+                                );
+                              })}
 
 
                             </select>
@@ -523,10 +568,13 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         <div className="p-3 md:p-6 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
           {vehicles.map((vehicle) => {
             const currentVehicle = editVehicleId === vehicle.id ? editingVehicle! : vehicle;
-            const oilLife = calculateOilLife(currentVehicle);
+            const oilLife = calculateLife(currentVehicle.lastOilChangeOdometer, currentVehicle.oilInterval, currentVehicle.odometer);
+            const tiresLife = calculateLife(currentVehicle.lastTiresChangeOdometer, currentVehicle.tiresInterval, currentVehicle.odometer);
+            const brakesLife = calculateLife(currentVehicle.lastBrakesChangeOdometer, currentVehicle.brakesInterval, currentVehicle.odometer);
+            
             const nextChange = (currentVehicle.lastOilChangeOdometer || 0) + (currentVehicle.oilInterval || 0);
             const remainingKm = nextChange - (currentVehicle.odometer || 0);
-            const isUrgent = remainingKm <= 500;
+            const isUrgent = remainingKm <= 500 || ( (currentVehicle.lastTiresChangeOdometer + currentVehicle.tiresInterval) - currentVehicle.odometer <= 500 ) || ( (currentVehicle.lastBrakesChangeOdometer + currentVehicle.brakesInterval) - currentVehicle.odometer <= 500 );
 
             return (
               <div key={vehicle.id} className={`space-y-4 md:space-y-6 ${vehicle.id === 'TOR-02' ? 'lg:border-l lg:border-slate-50 lg:pl-8' : ''}`}>
@@ -604,64 +652,65 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
                   {[
-                    { label: 'Odômetro Atual', value: vehicle.odometer, key: 'odometer' },
-                    { label: 'Próx. Troca Óleo', value: vehicle.lastOilChangeOdometer + vehicle.oilInterval, key: 'oil' },
+                    { label: 'Odômetro', value: vehicle.odometer, key: 'odometer', currentVal: editingVehicle?.odometer },
+                    { label: 'Próx. Óleo', value: vehicle.lastOilChangeOdometer + vehicle.oilInterval, key: 'oil', currentVal: (editingVehicle?.lastOilChangeOdometer || 0) + (editingVehicle?.oilInterval || 0)},
+                    { label: 'Próx. Pneus', value: vehicle.lastTiresChangeOdometer + vehicle.tiresInterval, key: 'tires', currentVal: (editingVehicle?.lastTiresChangeOdometer || 0) + (editingVehicle?.tiresInterval || 0)},
+                    { label: 'Próx. Freio', value: vehicle.lastBrakesChangeOdometer + vehicle.brakesInterval, key: 'brakes', currentVal: (editingVehicle?.lastBrakesChangeOdometer || 0) + (editingVehicle?.brakesInterval || 0)}
                   ].map(item => (
                     <div key={item.label} className="p-2 md:p-3 bg-slate-50 rounded-xl border border-slate-100">
-                      <p className="text-[8px] md:text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">{item.label}</p>
+                      <p className="text-[8px] md:text-[9px] text-slate-400 uppercase font-black tracking-tighter mb-1">{item.label}</p>
                       {editVehicleId === vehicle.id ? (
                         <input
                           type="number"
-                          className="w-full bg-white border-slate-200 rounded text-xs md:text-sm font-black text-slate-800 p-0.5"
-                          value={item.key === 'odometer' ? editingVehicle?.odometer : (editingVehicle?.lastOilChangeOdometer || 0) + (editingVehicle?.oilInterval || 0)}
+                          className="w-full bg-white border-slate-200 rounded text-[10px] md:text-sm font-black text-slate-800 p-0.5"
+                          value={item.currentVal || 0}
                           onChange={e => {
                             const val = parseInt(e.target.value) || 0;
-                            if (item.key === 'odometer') {
-                              setEditingVehicle(prev => prev ? { ...prev, odometer: val } : null);
-                            } else {
-                              setEditingVehicle(prev => prev ? { ...prev, oilInterval: val - (prev?.lastOilChangeOdometer || 0) } : null);
-                            }
+                            setEditingVehicle(prev => {
+                                if(!prev) return null;
+                                if (item.key === 'odometer') return { ...prev, odometer: val };
+                                if (item.key === 'oil') return { ...prev, oilInterval: val - prev.lastOilChangeOdometer };
+                                if (item.key === 'tires') return { ...prev, tiresInterval: val - prev.lastTiresChangeOdometer };
+                                if (item.key === 'brakes') return { ...prev, brakesInterval: val - prev.lastBrakesChangeOdometer };
+                                return prev;
+                            });
                           }}
                         />
                       ) : (
-                        <p className="text-xs md:text-sm font-black text-slate-800">{item.value.toLocaleString('pt-BR')} km</p>
+                        <p className="text-[10px] md:text-sm font-black text-slate-800">{item.value.toLocaleString('pt-BR')} km</p>
                       )}
                     </div>
                   ))}
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between items-end px-1">
-                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Vida Útil do Óleo</p>
-                    <p className={`text-xs font-black ${oilLife < 20 ? 'text-red-500' : 'text-tor-blue'}`}>
-                      {oilLife}%
-                    </p>
-                  </div>
-                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                    <div
-                      className={`h-full transition-all duration-1000 rounded-full ${oilLife < 20 ? 'bg-red-500' : 'bg-gradient-to-r from-tor-blue to-sky-400'}`}
-                      style={{ width: `${oilLife}%` }}
-                    ></div>
-                  </div>
-
-                  {isUrgent ? (
-                    <div className="flex flex-col items-center gap-1 pt-1">
-                      <p className="text-[11px] font-black text-red-600 uppercase tracking-widest animate-flash-red">
-                        ⚠️ TROCAR DE ÓLEO URGENTE ⚠️
-                      </p>
-                      <p className="text-[11px] text-red-500 font-black uppercase tracking-tighter">
-                        {remainingKm <= 0
-                          ? `Vencido por ${Math.abs(remainingKm).toLocaleString('pt-BR')} km`
-                          : `Faltam ${remainingKm.toLocaleString('pt-BR')} km para a troca`
-                        }
+                <div className="space-y-4">
+                  {[
+                    {label: 'Óleo Motor', life: oilLife, rem: (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval) - currentVehicle.odometer},
+                    {label: 'Pneus', life: tiresLife, rem: (currentVehicle.lastTiresChangeOdometer + currentVehicle.tiresInterval) - currentVehicle.odometer},
+                    {label: 'Freios', life: brakesLife, rem: (currentVehicle.lastBrakesChangeOdometer + currentVehicle.brakesInterval) - currentVehicle.odometer}
+                  ].map(stat => (
+                      <div key={stat.label} className="space-y-1">
+                        <div className="flex justify-between items-end px-1">
+                          <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">{stat.label}</p>
+                          <div className="flex items-baseline gap-2">
+                             <p className={`text-[8px] font-bold ${stat.rem <= 500 ? 'text-red-500 animate-pulse' : 'text-slate-400'}`}>{Math.max(0, stat.rem).toLocaleString('pt-BR')} km</p>
+                             <p className={`text-[10px] font-black ${stat.life < 20 ? 'text-red-500' : 'text-tor-blue'}`}>{stat.life}%</p>
+                          </div>
+                        </div>
+                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                          <div className={`h-full transition-all duration-1000 rounded-full ${stat.life < 20 ? 'bg-red-500' : 'bg-gradient-to-r from-tor-blue to-sky-400'}`} style={{ width: `${stat.life}%` }}></div>
+                        </div>
+                      </div>
+                  ))}
+                  
+                  {isUrgent && (
+                    <div className="flex flex-col items-center gap-1 pt-2">
+                      <p className="text-[10px] font-black text-red-600 uppercase tracking-widest animate-flash-red text-center leading-tight">
+                        ⚠️ MANUTENÇÃO CRÍTICA NECESSÁRIA ⚠️
                       </p>
                     </div>
-                  ) : (
-                    <p className="text-[11px] text-slate-500 font-bold uppercase text-center tracking-tighter">
-                      {Math.max(0, (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval) - currentVehicle.odometer).toLocaleString('pt-BR')} km restantes para troca
-                    </p>
                   )}
                 </div>
 
