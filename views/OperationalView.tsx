@@ -258,6 +258,26 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
     }
   };
 
+  const handleAddNewVehicle = () => {
+    const newId = `TEMP-${Date.now()}`;
+    const newVehicle: Vehicle = {
+      id: '',
+      prefix: '',
+      status: 'OPERANDO',
+      model: '',
+      year: new Date().getFullYear().toString(),
+      plate: '',
+      odometer: 0,
+      oilInterval: 10000,
+      lastOilChangeOdometer: 0,
+      color: 'tor-blue'
+    };
+    
+    setVehicles([ { ...newVehicle, id: newId }, ...vehicles ]);
+    setEditVehicleId(newId);
+    setEditingVehicle(newVehicle);
+  };
+
   const handleStartEditVehicle = (vehicle: Vehicle) => {
     setEditVehicleId(vehicle.id);
     setEditingVehicle({ ...vehicle });
@@ -265,7 +285,18 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
   const handleSaveVehicle = async () => {
     if (editingVehicle && editVehicleId) {
+      if (!editingVehicle.id) {
+        alert('Por favor, informe o ID da viatura (ex: TOR-03).');
+        return;
+      }
+      if (!editingVehicle.model || !editingVehicle.plate) {
+        alert('Modelo e placa são obrigatórios.');
+        return;
+      }
+
       setIsSaving(true);
+      const isNew = editVehicleId.startsWith('TEMP-');
+
       const { error } = await supabase
         .from('vehicles')
         .upsert({
@@ -280,14 +311,14 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         });
 
       if (!error) {
-        if (editingVehicle.id !== editVehicleId) {
+        if (isNew || editingVehicle.id !== editVehicleId) {
           fetchData();
         } else {
           setVehicles(vehicles.map(v => v.id === editVehicleId ? editingVehicle : v));
         }
         setEditVehicleId(null);
         setEditingVehicle(null);
-        alert('Dados da viatura atualizados!');
+        alert(isNew ? 'Nova viatura registrada!' : 'Dados da viatura atualizados!');
       } else {
         alert(`Erro ao salvar viatura: ${error.message}`);
       }
@@ -474,26 +505,35 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
             </div>
           </div>
           {isLoggedIn && (
-            <button
-              onClick={syncVehicleKm}
-              disabled={isSyncing}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest text-slate-400 disabled:opacity-50"
-            >
-              <span className="material-symbols-outlined text-sm">refresh</span>
-              Forçar Atualização
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={syncVehicleKm}
+                disabled={isSyncing}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest text-slate-400 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-sm">refresh</span>
+                Forçar Atualização
+              </button>
+              <button
+                onClick={handleAddNewVehicle}
+                className="flex items-center gap-2 px-4 py-2 bg-tor-blue hover:bg-tor-dark text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest shadow-lg shadow-tor-blue/20"
+              >
+                <span className="material-symbols-outlined text-sm">add</span>
+                Nova Viatura
+              </button>
+            </div>
           )}
 
         </div>
 
         <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {vehicles.map((vehicle) => {
+          {vehicles.map((vehicle, index) => {
             const currentVehicle = editVehicleId === vehicle.id ? editingVehicle! : vehicle;
             const oilLife = calculateOilLife(currentVehicle);
             const isUrgent = currentVehicle.odometer >= (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval);
 
             return (
-              <div key={vehicle.id} className={`space-y-8 ${vehicle.id === 'TOR-02' ? 'lg:border-l lg:border-slate-50 lg:pl-12' : ''}`}>
+              <div key={vehicle.id} className={`space-y-8 ${index % 2 !== 0 ? 'lg:border-l lg:border-slate-50 lg:pl-12' : ''}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     {editVehicleId === vehicle.id ? (
@@ -628,7 +668,13 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
                 {editVehicleId === vehicle.id && (
                   <div className="flex justify-end gap-3 pt-2">
-                    <button onClick={() => setEditVehicleId(null)} disabled={isSaving} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 disabled:opacity-50">Cancelar</button>
+                    <button onClick={() => {
+                      if (editVehicleId?.startsWith('TEMP-')) {
+                        setVehicles(vehicles.filter(v => v.id !== editVehicleId));
+                      }
+                      setEditVehicleId(null);
+                      setEditingVehicle(null);
+                    }} disabled={isSaving} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 disabled:opacity-50">Cancelar</button>
                     <button onClick={handleSaveVehicle} disabled={isSaving} className="bg-tor-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 min-w-[120px]">
                       {isSaving ? 'Salvando...' : 'Salvar Viatura'}
                     </button>
