@@ -41,3 +41,16 @@ export interface UserProfile {
   created_at: string;
   updated_at: string;
 }
+
+export interface PersonnelAbsence {
+  id: string;
+  personnel_id: string;
+  type: string;
+  start_date: string;
+  end_date: string;
+  description?: string;
+  personnel?: {
+    name: string;
+    graduation: string;
+  };
+}

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { fetchLatestVehicleKm } from '../services/sheetsService';
 import { supabase } from '../lib/supabase';
-import LeavesPanel, { Leave } from '../components/LeavesPanel'; // Importação do novo componente
+import PersonnelAbsences from '../components/PersonnelAbsences';
+import { PersonnelAbsence as Leave } from '../types';
 
 interface Member {
   name: string;
@@ -120,7 +121,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
     // Buscar Afastamentos Ativos (para ícones)
     const today = new Date().toISOString().split('T')[0];
     const { data: leavesData } = await supabase
-      .from('personnel_leaves')
+      .from('personnel_absences')
       .select('*, personnel:personnel_id(name, graduation)')
       .lte('start_date', today)
       .gte('end_date', today);
@@ -385,7 +386,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
       `}</style>
 
       {/* Painel de Afastamentos */}
-      <LeavesPanel isLoggedIn={isLoggedIn} />
+      <PersonnelAbsences isLoggedIn={isLoggedIn} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {teams.map((team) => (
