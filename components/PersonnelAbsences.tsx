@@ -134,6 +134,33 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
         return `${day}/${month}/${year}`;
     };
 
+    const getAbsenceConfig = (type: string) => {
+        switch (type) {
+            case 'Férias': return { icon: 'beach_access', color: 'text-emerald-500', bgColor: 'bg-orange-50' };
+            case 'Atestado': return { icon: 'description', color: 'text-blue-500', bgColor: 'bg-blue-50' };
+            case 'Licença Médica': return { icon: 'medical_services', color: 'text-red-500', bgColor: 'bg-red-50' };
+            case 'Licença Especial': return { icon: 'military_tech', color: 'text-purple-500', bgColor: 'bg-purple-50' };
+            case 'Curso': return { icon: 'school', color: 'text-emerald-500', bgColor: 'bg-emerald-50' };
+            default: return { icon: 'more_horiz', color: 'text-slate-500', bgColor: 'bg-slate-50' };
+        }
+    };
+
+    const isActiveAbsence = (startDate: string, endDate: string) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Ajuste para evitar problemas de fuso horário na comparação direta
+        const start = new Date(startDate + 'T12:00:00');
+        const end = new Date(endDate + 'T12:00:00');
+
+        return today >= start && today <= end;
+    };
+
+    const activeAbsences = absences.filter(a => isActiveAbsence(a.start_date, a.end_date));
+    const totalActive = activeAbsences.length;
+    const vacationsActive = activeAbsences.filter(a => a.type === 'Férias').length;
+    const medicalActive = totalActive - vacationsActive;
+
     if (loading && absences.length === 0) {
         return <div className="p-8 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Carregando afastamentos...</div>;
     }
@@ -162,51 +189,116 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
             </div>
 
             <div className="p-3 md:p-6">
+                {/* Dashboard de Insights */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                    <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 flex items-center gap-4 transition-all hover:shadow-sm">
+                        <div className="size-12 rounded-xl bg-slate-200/50 text-slate-500 flex items-center justify-center shadow-inner">
+                            <span className="material-symbols-outlined text-2xl">person_off</span>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">Total Afastados</p>
+                            <p className="text-2xl font-black text-slate-900">{totalActive}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-orange-50/30 rounded-2xl p-4 border border-orange-100/50 flex items-center gap-4 transition-all hover:shadow-sm">
+                        <div className="size-12 rounded-xl bg-orange-100/50 text-orange-500 flex items-center justify-center shadow-inner">
+                            <span className="material-symbols-outlined text-2xl filled-icon">beach_access</span>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-orange-400/80 font-black uppercase tracking-widest leading-none mb-1">Em Férias</p>
+                            <p className="text-2xl font-black text-slate-900">{vacationsActive}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-red-50/30 rounded-2xl p-4 border border-red-100/50 flex items-center gap-4 transition-all hover:shadow-sm">
+                        <div className="size-12 rounded-xl bg-red-100/50 text-red-500 flex items-center justify-center shadow-inner">
+                            <span className="material-symbols-outlined text-2xl filled-icon">medical_services</span>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-red-400/80 font-black uppercase tracking-widest leading-none mb-1">Atestado/Licença</p>
+                            <p className="text-2xl font-black text-slate-900">{medicalActive}</p>
+                        </div>
+                    </div>
+                </div>
                 {absences.length === 0 ? (
                     <div className="text-center py-6 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
                         <span className="material-symbols-outlined text-2xl text-slate-300 mb-1">person_off</span>
                         <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest">Nenhum policial afastado</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 min-[440px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-3">
-                        {absences.map((absence) => (
-                            <div key={absence.id} className="group relative bg-white border border-slate-200 rounded-xl p-2.5 md:p-3 hover:shadow-md transition-all flex flex-col justify-between min-h-[110px]">
-                                <div className="flex justify-between items-start mb-2">
-                                    <div className="flex flex-col min-w-0 flex-1">
-                                        <span className="text-[7px] md:text-[8px] font-black text-orange-500 uppercase tracking-widest mb-0.5 truncate">{absence.type}</span>
-                                        <h4 className="text-slate-900 font-black text-[10px] md:text-[11px] uppercase leading-tight truncate">
-                                            {absence.personnel?.graduation} {absence.personnel?.name}
-                                        </h4>
-                                    </div>
-                                    {isLoggedIn && (
-                                        <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                            <button onClick={() => handleEdit(absence)} className="size-5 rounded bg-slate-100 text-slate-500 hover:bg-tor-blue hover:text-white flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-[10px]">edit</span>
-                                            </button>
-                                            <button onClick={() => handleDelete(absence.id)} className="size-5 rounded bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-[10px]">delete</span>
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                    <div className="grid grid-cols-1 min-[440px]:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                        {absences.map((absence) => {
+                            const config = getAbsenceConfig(absence.type);
+                            const active = isActiveAbsence(absence.start_date, absence.end_date);
 
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-1.5 bg-slate-50 rounded-lg p-1.5 border border-slate-100/50">
-                                        <span className="material-symbols-outlined text-slate-400 text-xs shrink-0">calendar_month</span>
-                                        <div className="flex flex-col min-w-0">
-                                            <p className="text-[7px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Período</p>
-                                            <p className="text-[9px] font-bold text-slate-700 leading-tight">
-                                                {formatDate(absence.start_date)} — {formatDate(absence.end_date)}
-                                            </p>
+                            // Lógica de cores conforme solicitação:
+                            // Ativo (em vigor): Férias = Laranja, Outros = Vermelho
+                            // Inativo (trabalhando/fora do período): Verde
+                            const statusColor = active
+                                ? (absence.type === 'Férias' ? 'orange-500' : 'red-500')
+                                : 'emerald-500';
+                            const statusBg = active
+                                ? (absence.type === 'Férias' ? 'bg-orange-500' : 'bg-red-500')
+                                : 'bg-emerald-500';
+                            const statusBorder = active
+                                ? (absence.type === 'Férias' ? 'border-orange-500' : 'border-red-500')
+                                : 'border-emerald-500';
+                            const statusText = active
+                                ? (absence.type === 'Férias' ? 'text-emerald-600' : 'text-red-600')
+                                : 'text-emerald-600';
+
+                            return (
+                                <div key={absence.id} className={`group relative bg-white border ${statusBorder} ${active ? 'ring-2 ring-' + statusColor + '/10 shadow-lg' : 'border-emerald-500/30 bg-emerald-50/10'} rounded-xl p-3 md:p-4 hover:shadow-md transition-all flex flex-col justify-between min-h-[135px]`}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                            <div className={`size-9 md:size-10 rounded-lg ${active ? statusBg + ' text-white' : config.bgColor + ' ' + config.color} flex items-center justify-center shrink-0 shadow-sm`}>
+                                                <span className="material-symbols-outlined text-lg md:text-xl filled-icon">{config.icon}</span>
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <div className="flex items-center gap-1.5 mb-0.5">
+                                                    <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest truncate ${active ? statusText : config.color}`}>
+                                                        {absence.type}
+                                                    </span>
+                                                    {active && (
+                                                        <span className={`${statusBg} text-white text-[8px] md:text-[9px] font-black px-1.5 rounded-sm animate-pulse whitespace-nowrap`}>EM VIGOR</span>
+                                                    )}
+                                                </div>
+                                                <h4 className="text-slate-900 font-black text-[13px] md:text-sm uppercase leading-tight truncate">
+                                                    {absence.personnel?.graduation} {absence.personnel?.name}
+                                                </h4>
+                                            </div>
                                         </div>
+                                        {isLoggedIn && (
+                                            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                                <button onClick={() => handleEdit(absence)} className="size-5 rounded bg-slate-100 text-slate-500 hover:bg-tor-blue hover:text-white flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-[10px]">edit</span>
+                                                </button>
+                                                <button onClick={() => handleDelete(absence.id)} className="size-5 rounded bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-[10px]">delete</span>
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {absence.description && (
-                                        <p className="text-[8px] text-slate-500 italic px-1 truncate" title={absence.description}>"{absence.description}"</p>
-                                    )}
+                                    <div className="space-y-2.5">
+                                        <div className="flex items-center gap-2 bg-slate-50 rounded-lg p-2 border border-slate-100/50">
+                                            <span className="material-symbols-outlined text-slate-400 text-sm shrink-0">calendar_month</span>
+                                            <div className="flex flex-col min-w-0">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">Período</p>
+                                                <p className="text-[11px] md:text-xs font-bold text-slate-700 leading-tight">
+                                                    {formatDate(absence.start_date)} — {formatDate(absence.end_date)}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {absence.description && (
+                                            <p className="text-[10px] md:text-xs text-slate-500 italic px-1 truncate" title={absence.description}>"{absence.description}"</p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>

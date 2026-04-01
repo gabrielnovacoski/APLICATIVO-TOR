@@ -129,14 +129,16 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
     // Buscar Viaturas
     const { data: vData } = await supabase.from('vehicles').select('*');
+    
+    let mappedVehicles: Vehicle[] = [];
     if (vData && vData.length > 0) {
-      setVehicles(vData.map(v => ({
+      mappedVehicles = vData.map(v => ({
         ...v,
         oilInterval: v.oil_interval,
         lastOilChangeOdometer: v.last_oil_change_odometer
-      })));
+      }));
     } else {
-      setVehicles(initialVehicles);
+      mappedVehicles = initialVehicles;
       await supabase.from('vehicles').upsert(initialVehicles.map(v => ({
         id: v.id,
         model: v.model,
@@ -148,6 +150,35 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
         last_oil_change_odometer: v.lastOilChangeOdometer
       })));
     }
+
+    // SINCRONIZANDO O KM AUTOMATICAMENTE LOGO DEPOIS DE CARREGAR
+    const updatedVehicles = await Promise.all(mappedVehicles.map(async (v) => {
+      try {
+        const latestKm = await fetchLatestVehicleKm(v.id);
+        // Se achou um KM novo diferente do que está no banco atualiza automaticamente!
+        if (latestKm !== null && latestKm !== v.odometer) {
+          await supabase.from('vehicles').update({ odometer: latestKm }).eq('id', v.id);
+          return { ...v, odometer: latestKm };
+        }
+      } catch (error) {
+        console.error('Erro na sincronização automática:', error);
+      }
+      return v;
+    }));
+
+    // Ordenação fixa das viaturas em tela
+    const sortedVehicles = updatedVehicles.sort((a, b) => {
+      if (a.id === 'TOR 0003') return -1;
+      if (b.id === 'TOR 0003') return 1;
+      if (a.id === 'TOR 0004') return -1;
+      if (b.id === 'TOR 0004') return 1;
+      return a.id.localeCompare(b.id);
+    });
+
+    setVehicles(sortedVehicles);
+
+
+
 
     // Buscar Efetivo
     const { data: pData } = await supabase.from('personnel').select('*');
@@ -506,14 +537,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
           </div>
           {isLoggedIn && (
             <div className="flex items-center gap-3">
-              <button
-                onClick={syncVehicleKm}
-                disabled={isSyncing}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest text-slate-400 disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined text-sm">refresh</span>
-                Forçar Atualização
-              </button>
+              {/* Botão de sincronizar removido pois agora é automático */}
               <button
                 onClick={handleAddNewVehicle}
                 className="flex items-center gap-2 px-4 py-2 bg-tor-blue hover:bg-tor-dark text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest shadow-lg shadow-tor-blue/20"
