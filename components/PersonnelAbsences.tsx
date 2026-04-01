@@ -257,14 +257,14 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                                             </div>
                                             <div className="flex flex-col min-w-0">
                                                 <div className="flex items-center gap-1.5 mb-0.5">
-                                                    <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest truncate ${active ? statusText : config.color}`}>
+                                                    <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ${active ? statusText : config.color}`}>
                                                         {absence.type}
                                                     </span>
                                                     {active && (
                                                         <span className={`${statusBg} text-white text-[8px] md:text-[9px] font-black px-1.5 rounded-sm animate-pulse whitespace-nowrap`}>EM VIGOR</span>
                                                     )}
                                                 </div>
-                                                <h4 className="text-slate-900 font-black text-[13px] md:text-sm uppercase leading-tight truncate">
+                                                <h4 className="text-slate-900 font-black text-[13px] md:text-sm uppercase leading-tight">
                                                     {absence.personnel?.graduation} {absence.personnel?.name}
                                                 </h4>
                                             </div>

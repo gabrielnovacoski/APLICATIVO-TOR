@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { fetchLatestVehicleKm } from '../services/sheetsService';
 import { supabase } from '../lib/supabase';
 import PersonnelAbsences from '../components/PersonnelAbsences';
@@ -114,6 +114,12 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Ref para sincronização automática segura
+  const vehiclesRef = useRef<Vehicle[]>([]);
+  useEffect(() => {
+    vehiclesRef.current = vehicles;
+  }, [vehicles]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -242,16 +248,23 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
   };
 
   const syncVehicleKm = async () => {
+    if (vehiclesRef.current.length === 0) return;
+    
     setIsSyncing(true);
-    const updatedVehicles = await Promise.all(vehicles.map(async (v) => {
+    const updatedVehicles = await Promise.all(vehiclesRef.current.map(async (v) => {
       const latestKm = await fetchLatestVehicleKm(v.id);
-      if (latestKm !== null) {
+      if (latestKm !== null && latestKm !== v.odometer) {
         await supabase.from('vehicles').update({ odometer: latestKm }).eq('id', v.id);
         return { ...v, odometer: latestKm };
       }
       return v;
     }));
-    setVehicles(updatedVehicles);
+    
+    // Só atualiza se houver mudanças reais para evitar re-render desnecessário
+    const hasChanges = updatedVehicles.some((v, idx) => v.odometer !== vehiclesRef.current[idx].odometer);
+    if (hasChanges) {
+      setVehicles(updatedVehicles);
+    }
     setIsSyncing(false);
   };
 
