@@ -32,9 +32,10 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
       const { data: vData } = await supabase.from('vehicles').select('*');
       if (vData) {
         const critical = vData.filter(v => {
-          const kmSinceChange = v.odometer - v.last_oil_change_odometer;
-          const life = Math.max(0, 100 - (kmSinceChange / v.oil_interval) * 100);
-          return life < 15; // Alerta se vida útil do óleo for menor que 15%
+          const nextChange = v.last_oil_change_odometer + v.oil_interval;
+          const remainingKm = nextChange - v.odometer;
+          const life = (remainingKm / 10000) * 100;
+          return life < 5; // Alerta se vida útil do óleo for menor que 5% (Limite Crítico)
         });
         setMaintenanceAlerts(critical);
       }
