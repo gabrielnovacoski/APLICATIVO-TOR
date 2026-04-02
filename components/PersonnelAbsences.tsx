@@ -285,7 +285,7 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                                             </div>
                                             <div className="flex flex-col min-w-0">
                                                 <div className="flex items-center gap-1.5 mb-0.5">
-                                                    <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest truncate ${active ? statusText : upcoming ? 'text-blue-600' : 'text-slate-400'}`}>
+                                                    <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${active ? statusText : upcoming ? 'text-blue-600' : 'text-slate-400'}`}>
                                                         {absence.type}
                                                     </span>
                                                     {statusBadge && (

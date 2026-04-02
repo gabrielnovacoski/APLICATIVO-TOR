@@ -582,30 +582,30 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                         placeholder="ID"
                       />
                     ) : (
-                      <div className={`px-4 py-1.5 rounded-xl text-white font-black text-sm shadow-lg bg-tor-blue shadow-tor-blue/20`}>
+                      <div className={`px-4 py-1.5 rounded-xl text-white font-black text-sm shadow-lg bg-tor-blue shadow-tor-blue/20 shrink-0`}>
                         {vehicle.id}
                       </div>
                     )}
 
-                    <div>
+                    <div className="flex-1 min-w-0">
                       {editVehicleId === vehicle.id ? (
                         <div className="flex flex-col gap-1">
                           <input
-                            className="bg-slate-50 border-none rounded text-lg font-black text-slate-900 p-1 w-32"
+                            className="bg-slate-50 border-none rounded text-base md:text-lg font-black text-slate-900 p-1 w-full"
                             value={editingVehicle?.model}
                             onChange={e => setEditingVehicle(prev => prev ? { ...prev, model: e.target.value } : null)}
                             placeholder="MODELO"
                           />
                           <div className="flex gap-2">
                             <input
-                              className="bg-slate-50 border-none rounded text-xs font-bold text-slate-300 p-0.5 w-16"
+                              className="bg-slate-50 border-none rounded text-[10px] md:text-xs font-bold text-slate-300 p-0.5 w-16"
                               value={editingVehicle?.year}
                               onChange={e => setEditingVehicle(prev => prev ? { ...prev, year: e.target.value } : null)}
                               placeholder="ANO"
                             />
 
                             <select
-                              className="bg-slate-100 text-slate-600 border-none rounded text-[10px] font-black p-0.5 w-24"
+                              className="bg-slate-100 text-slate-600 border-none rounded text-[9px] md:text-[10px] font-black p-0.5 w-24"
                               value={editingVehicle?.status}
                               onChange={e => setEditingVehicle(prev => prev ? { ...prev, status: e.target.value as any } : null)}
                             >
@@ -615,20 +615,20 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col">
-                          <h4 className="text-slate-900 font-black text-lg">
-                            {vehicle.model}
-                            <span className="text-slate-300 font-bold text-sm ml-2">{vehicle.year}</span>
-                            <span className={`ml-3 px-2 py-0.5 rounded-full text-[9px] font-black ${vehicle.status === 'OPERANDO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                        <div className="flex flex-col min-w-0">
+                          <h4 className="text-slate-900 font-black text-sm md:text-lg flex items-center flex-wrap gap-x-2">
+                            <span className="truncate">{vehicle.model}</span>
+                            <span className="text-slate-300 font-bold text-xs md:text-sm shrink-0">{vehicle.year}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-black shrink-0 ${vehicle.status === 'OPERANDO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                               {vehicle.status}
                             </span>
                           </h4>
                         </div>
-
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+
+                  <div className="flex items-center gap-2 shrink-0">
                     {editVehicleId === vehicle.id ? (
                       <input
                         className="bg-slate-50 border-none rounded text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 py-1 w-24"
@@ -636,10 +636,10 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                         onChange={e => setEditingVehicle(prev => prev ? { ...prev, plate: e.target.value } : null)}
                       />
                     ) : (
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-md">{vehicle.plate}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-md whitespace-nowrap">{vehicle.plate}</span>
                     )}
                     {isLoggedIn && editVehicleId !== vehicle.id && (
-                      <button onClick={() => handleStartEditVehicle(vehicle)} className="size-8 rounded-full bg-slate-50 text-slate-400 hover:bg-tor-blue hover:text-white flex items-center justify-center transition-all">
+                      <button onClick={() => handleStartEditVehicle(vehicle)} className="size-8 rounded-full bg-slate-50 text-slate-400 hover:bg-tor-blue hover:text-white flex items-center justify-center transition-all shrink-0">
                         <span className="material-symbols-outlined text-sm">edit</span>
                       </button>
                     )}
