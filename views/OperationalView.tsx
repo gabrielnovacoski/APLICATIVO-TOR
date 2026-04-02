@@ -373,9 +373,10 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
   const calculateOilLife = (v: Vehicle) => {
     const baseInterval = 10000;
-    const kmSinceChange = v.odometer - v.lastOilChangeOdometer;
-    const life = Math.max(0, 100 - (kmSinceChange / baseInterval) * 100);
-    return Math.min(100, Math.round(life));
+    const nextChange = v.lastOilChangeOdometer + v.oilInterval;
+    const remainingKm = nextChange - v.odometer;
+    const life = (remainingKm / baseInterval) * 100;
+    return Math.max(0, Math.min(100, Math.round(life)));
   };
 
   if (loading) {
@@ -569,8 +570,8 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
           {vehicles.map((vehicle, index) => {
             const currentVehicle = editVehicleId === vehicle.id ? editingVehicle! : vehicle;
             const oilLife = calculateOilLife(currentVehicle);
-            const baseInterval = 10000;
-            const isUrgent = currentVehicle.odometer >= (currentVehicle.lastOilChangeOdometer + baseInterval);
+            const nextChange = currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval;
+            const isUrgent = currentVehicle.odometer >= nextChange;
 
             return (
               <div key={vehicle.id} className={`space-y-8 ${index % 2 !== 0 ? 'lg:border-l lg:border-slate-50 lg:pl-12' : ''}`}>
@@ -651,7 +652,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { label: 'Odômetro Atual', value: vehicle.odometer, key: 'odometer' },
-                    { label: 'Próx. Troca Óleo', value: vehicle.lastOilChangeOdometer + 10000, key: 'oil' },
+                    { label: 'Próx. Troca Óleo', value: vehicle.lastOilChangeOdometer + vehicle.oilInterval, key: 'oil' },
                   ].map(item => (
                     <div key={item.label} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                       <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest mb-1">{item.label}</p>
@@ -665,9 +666,8 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                             if (item.key === 'odometer') {
                               setEditingVehicle(prev => prev ? { ...prev, odometer: val } : null);
                             } else {
-                              // Se editar a PRÓXIMA TROCA, atualizamos o last_oil_change_odometer
-                              // assumindo que a próxima seria last + 10.000
-                              setEditingVehicle(prev => prev ? { ...prev, lastOilChangeOdometer: val - 10000 } : null);
+                              // Se editar a PRÓXIMA TROCA, atualizamos o oilInterval baseado no lastOilChangeOdometer atual
+                              setEditingVehicle(prev => prev ? { ...prev, oilInterval: val - prev.lastOilChangeOdometer } : null);
                             }
                           }}
                         />
@@ -698,12 +698,12 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                         ⚠️ TROCAR DE ÓLEO URGENTE ⚠️
                       </p>
                       <p className="text-[8px] text-red-500 font-bold uppercase tracking-tighter">
-                        Vencido por {(currentVehicle.odometer - (currentVehicle.lastOilChangeOdometer + 10000)).toLocaleString('pt-BR')} km
+                        Vencido por {(currentVehicle.odometer - (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval)).toLocaleString('pt-BR')} km
                       </p>
                     </div>
                   ) : (
                     <p className="text-[8px] text-slate-400 font-bold uppercase text-center tracking-tighter">
-                      {Math.max(0, (currentVehicle.lastOilChangeOdometer + 10000) - currentVehicle.odometer).toLocaleString('pt-BR')} km restantes para troca
+                      {Math.max(0, (currentVehicle.lastOilChangeOdometer + currentVehicle.oilInterval) - currentVehicle.odometer).toLocaleString('pt-BR')} km restantes para troca
                     </p>
                   )}
                 </div>
