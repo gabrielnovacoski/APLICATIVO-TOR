@@ -145,7 +145,7 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
         }
     };
 
-    const isActiveAbsence = (startDate: string, endDate: string) => {
+    const getAbsenceStatus = (startDate: string, endDate: string) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -153,7 +153,13 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
         const start = new Date(startDate + 'T12:00:00');
         const end = new Date(endDate + 'T12:00:00');
 
-        return today >= start && today <= end;
+        if (today < start) return 'UPCOMING';
+        if (today > end) return 'COMPLETED';
+        return 'ACTIVE';
+    };
+
+    const isActiveAbsence = (startDate: string, endDate: string) => {
+        return getAbsenceStatus(startDate, endDate) === 'ACTIVE';
     };
 
     const activeAbsences = absences.filter(a => isActiveAbsence(a.start_date, a.end_date));
@@ -230,26 +236,48 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                     <div className="grid grid-cols-1 min-[440px]:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                         {absences.map((absence) => {
                             const config = getAbsenceConfig(absence.type);
-                            const active = isActiveAbsence(absence.start_date, absence.end_date);
+                            const status = getAbsenceStatus(absence.start_date, absence.end_date);
+                            const active = status === 'ACTIVE';
+                            const upcoming = status === 'UPCOMING';
+                            const completed = status === 'COMPLETED';
 
                             // Lógica de cores conforme solicitação:
                             // Ativo (em vigor): Férias = Laranja, Outros = Vermelho
-                            // Inativo (trabalhando/fora do período): Verde
-                            const statusColor = active
-                                ? (absence.type === 'Férias' ? 'orange-500' : 'red-500')
-                                : 'emerald-500';
-                            const statusBg = active
-                                ? (absence.type === 'Férias' ? 'bg-orange-500' : 'bg-red-500')
-                                : 'bg-emerald-500';
-                            const statusBorder = active
-                                ? (absence.type === 'Férias' ? 'border-orange-500' : 'border-red-500')
-                                : 'border-emerald-500';
-                            const statusText = active
-                                ? (absence.type === 'Férias' ? 'text-emerald-600' : 'text-red-600')
-                                : 'text-emerald-600';
+                            // Agendado: Azul
+                            // Concluído (trabalhando/fora do período): Cinza
+                            
+                            let statusColor = 'emerald-500';
+                            let statusBg = 'bg-emerald-500';
+                            let statusBorder = 'border-emerald-500/30';
+                            let statusText = 'text-emerald-600';
+                            let statusBadge = '';
+                            let badgeText = '';
+
+                            if (active) {
+                                statusColor = absence.type === 'Férias' ? 'orange-500' : 'red-500';
+                                statusBg = absence.type === 'Férias' ? 'bg-orange-500' : 'bg-red-500';
+                                statusBorder = absence.type === 'Férias' ? 'border-orange-500' : 'border-red-500';
+                                statusText = absence.type === 'Férias' ? 'text-orange-600' : 'text-red-600';
+                                statusBadge = statusBg;
+                                badgeText = 'EM VIGOR';
+                            } else if (upcoming) {
+                                statusColor = 'blue-500';
+                                statusBg = 'bg-blue-500';
+                                statusBorder = 'border-blue-500/30';
+                                statusText = 'text-blue-600';
+                                statusBadge = 'bg-blue-500';
+                                badgeText = 'AGENDADO';
+                            } else if (completed) {
+                                statusColor = 'slate-400';
+                                statusBg = 'bg-slate-400';
+                                statusBorder = 'border-slate-200';
+                                statusText = 'text-slate-500';
+                                statusBadge = 'bg-slate-500';
+                                badgeText = 'CONCLUÍDO';
+                            }
 
                             return (
-                                <div key={absence.id} className={`group relative bg-white border ${statusBorder} ${active ? 'ring-2 ring-' + statusColor + '/10 shadow-lg' : 'border-emerald-500/30 bg-emerald-50/10'} rounded-xl p-3 md:p-4 hover:shadow-md transition-all flex flex-col justify-between min-h-[135px]`}>
+                                <div key={absence.id} className={`group relative bg-white border ${statusBorder} ${active ? 'ring-2 ring-' + statusColor + '/10 shadow-lg' : completed ? 'bg-slate-50/50' : 'bg-blue-50/10'} rounded-xl p-3 md:p-4 hover:shadow-md transition-all flex flex-col justify-between min-h-[135px]`}>
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-3 min-w-0 flex-1">
                                             <div className={`size-9 md:size-10 rounded-lg ${active ? statusBg + ' text-white' : config.bgColor + ' ' + config.color} flex items-center justify-center shrink-0 shadow-sm`}>
@@ -257,11 +285,11 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                                             </div>
                                             <div className="flex flex-col min-w-0">
                                                 <div className="flex items-center gap-1.5 mb-0.5">
-                                                    <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ${active ? statusText : config.color}`}>
+                                                    <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest truncate ${active ? statusText : upcoming ? 'text-blue-600' : 'text-slate-400'}`}>
                                                         {absence.type}
                                                     </span>
-                                                    {active && (
-                                                        <span className={`${statusBg} text-white text-[8px] md:text-[9px] font-black px-1.5 rounded-sm animate-pulse whitespace-nowrap`}>EM VIGOR</span>
+                                                    {statusBadge && (
+                                                        <span className={`${statusBadge} text-white text-[8px] md:text-[9px] font-black px-1.5 rounded-sm ${active ? 'animate-pulse' : ''} whitespace-nowrap`}>{badgeText}</span>
                                                     )}
                                                 </div>
                                                 <h4 className="text-slate-900 font-black text-[13px] md:text-sm uppercase leading-tight">
