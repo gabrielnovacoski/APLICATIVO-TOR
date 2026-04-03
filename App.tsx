@@ -41,6 +41,7 @@ const App: React.FC = () => {
   const datePickerRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isLoggedIn = currentUser !== null && userProfile !== null && userProfile.is_active;
 
@@ -290,12 +291,25 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar activeView={activeView} onViewChange={setActiveView} isLoggedIn={isLoggedIn} onLoginToggle={handleToggleLogin} />
+      <Sidebar 
+        activeView={activeView} 
+        onViewChange={setActiveView} 
+        isLoggedIn={isLoggedIn} 
+        onLoginToggle={handleToggleLogin} 
+        mobileOpen={isMobileMenuOpen}
+        onMobileClose={() => setIsMobileMenuOpen(false)}
+      />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">{getViewTitle()}</h1>
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg"
+            >
+              <span className="material-symbols-outlined">menu</span>
+            </button>
+            <h1 className="text-lg md:text-xl font-bold text-slate-800 truncate">{getViewTitle()}</h1>
           </div>
 
 
