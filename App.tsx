@@ -332,7 +332,7 @@ const App: React.FC = () => {
               </button>
 
               {showDatePicker && (
-                <div className="absolute top-full right-0 mt-2 w-[95vw] md:w-[520px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-slate-200 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-x-4 top-20 md:absolute md:inset-auto md:top-full md:right-0 md:w-[520px] md:mt-2 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-slate-200 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
 
                   <div className="bg-tor-dark p-4 flex justify-between items-center border-b border-slate-700">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Período dos Dados</span>
