@@ -73,6 +73,18 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, isLoggedIn,
         ))}
       </nav>
 
+       <a
+        href="https://docs.google.com/forms/d/e/1FAIpQLSeaa0GqlVfumLJacwGmfF_YBNLwJtnGSCgSvIroqxygmO9PIg/viewform"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 px-8 py-3 transition-all duration-300 text-slate-400 hover:bg-white/5 hover:text-white group mb-2"
+      >
+        <span className="material-symbols-outlined text-xl group-hover:text-yellow-500 transition-colors">
+          edit_note
+        </span>
+        <span className="text-sm tracking-tight">Preencher Dados</span>
+      </a>
+
       <div className="p-4 mt-auto">
         <button
           onClick={onLoginToggle}
