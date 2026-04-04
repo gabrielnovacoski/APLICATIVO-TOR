@@ -410,20 +410,20 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                 <div className={`size-16 rounded-[22px] bg-blue-50 flex items-center justify-center text-tor-blue shadow-inner`}>
                   <span className="material-symbols-outlined text-4xl filled-icon">shield</span>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   {editId === team.id ? (
                     <input
-                      className="text-2xl font-black text-slate-900 leading-tight mb-1 bg-slate-50 border-none p-1 rounded-md w-full"
+                      className="text-xl md:text-2xl font-black text-slate-900 leading-tight mb-1 bg-slate-50 border-none p-1 rounded-md w-full"
                       value={editingTeam?.name}
                       onChange={e => setEditingTeam(prev => prev ? { ...prev, name: e.target.value } : null)}
                     />
                   ) : (
-                    <h3 className="text-[28px] font-black text-slate-900 leading-tight mb-1">{team.name}</h3>
+                    <h3 className="text-xl md:text-[28px] font-black text-slate-900 leading-tight mb-1 truncate">{team.name}</h3>
                   )}
 
                   <div className="flex items-start gap-2">
                     <span className="material-symbols-outlined text-slate-400 text-lg mt-0.5">explore</span>
-                    <div className="text-xs font-bold leading-relaxed flex-1">
+                    <div className="text-xs font-bold leading-relaxed flex-1 truncate">
                       <span className="text-slate-400 uppercase tracking-tighter mr-1">Setor: </span>
                       {editId === team.id ? (
                         <input
@@ -452,10 +452,10 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
             </div>
 
             <div className="space-y-6 relative z-10">
-              <p className="text-[14px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-3 text-center">
+              <p className="text-[12px] md:text-[14px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-3 text-center">
                 GUARNIÇÃO
               </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 {(editId === team.id ? editingTeam!.members : team.members.filter(m => m.name.trim() !== '')).map((member, idx) => {
                   // Calcular ícone de status dinâmico
                   const statusInfo = getMemberStatusIcon(member.name);
@@ -467,11 +467,11 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                         <span className="material-symbols-outlined text-sm">{statusInfo.icon}</span>
                       </div>
 
-                      <div className="size-11 rounded-full bg-white flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm group-hover/member:text-slate-500 overflow-hidden transition-colors">
+                      <div className="size-9 md:size-11 rounded-full bg-white flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm group-hover/member:text-slate-500 overflow-hidden transition-colors shrink-0">
                         {getRankIcon(member.name) ? (
                           <img src={getRankIcon(member.name)!} className="w-full h-full object-contain p-1" alt="rank" />
                         ) : (
-                          <span className="material-symbols-outlined text-xl">{member.icon}</span>
+                          <span className="material-symbols-outlined text-lg md:text-xl">{member.icon}</span>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
