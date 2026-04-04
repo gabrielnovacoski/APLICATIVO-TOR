@@ -309,13 +309,13 @@ const App: React.FC = () => {
             >
               <span className="material-symbols-outlined">menu</span>
             </button>
-            <h1 className="text-lg md:text-xl font-bold text-slate-800 truncate">{getViewTitle()}</h1>
+            <h1 className="text-base md:text-xl font-bold text-slate-800 truncate max-w-[150px] sm:max-w-none">{getViewTitle()}</h1>
           </div>
 
 
 
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">selecione o período</span>
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
+            <span className="hidden md:inline-block text-[10px] font-bold text-slate-400 uppercase tracking-widest">selecione o período</span>
             <div className="relative" ref={datePickerRef}>
 
 
