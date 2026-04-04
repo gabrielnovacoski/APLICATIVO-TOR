@@ -423,8 +423,8 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
 
                   <div className="flex items-start gap-2">
                     <span className="material-symbols-outlined text-slate-400 text-lg mt-0.5">explore</span>
-                    <div className="text-xs font-bold leading-relaxed flex-1 truncate">
-                      <span className="text-slate-400 uppercase tracking-tighter mr-1">Setor: </span>
+                    <div className="text-xs font-bold leading-relaxed flex-1 whitespace-normal break-words">
+                      <span className="text-slate-400 uppercase tracking-tighter mr-1 shrink-0">Setor: </span>
                       {editId === team.id ? (
                         <input
                           className={`bg-slate-50 border-none p-0.5 rounded-sm w-full ${team.color}`}
@@ -600,7 +600,7 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                             placeholder="MODELO"
                           />
                           <div className="flex gap-2">
-                            <input
+                             <input
                               className="bg-slate-50 border-none rounded text-[10px] md:text-xs font-bold text-slate-300 p-0.5 w-16"
                               value={editingVehicle?.year}
                               onChange={e => setEditingVehicle(prev => prev ? { ...prev, year: e.target.value } : null)}
@@ -618,14 +618,16 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col min-w-0">
-                          <h4 className="text-slate-900 font-black text-sm md:text-lg flex items-center flex-wrap gap-x-2">
-                            <span className="truncate">{vehicle.model}</span>
-                            <span className="text-slate-300 font-bold text-xs md:text-sm shrink-0">{vehicle.year}</span>
+                        <div className="flex flex-col min-w-0 gap-1">
+                          <h4 className="text-slate-900 font-black text-sm md:text-lg leading-tight break-words">
+                            {vehicle.model}
+                          </h4>
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-300 font-bold text-[10px] md:text-sm shrink-0">{vehicle.year}</span>
                             <span className={`px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-black shrink-0 ${vehicle.status === 'OPERANDO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
                               {vehicle.status}
                             </span>
-                          </h4>
+                          </div>
                         </div>
                       )}
                     </div>
