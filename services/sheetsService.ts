@@ -128,6 +128,7 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
       LSD: 25,
       MDMA: 26,
       CRACK: 27,
+      MAPD: 28,
 
       OUTRAS_DROGAS: 29,
       ARMAS: 30,
@@ -222,6 +223,7 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
     const lsd = getFormattedAndTrend(COL.LSD);
     const crack = getFormattedAndTrend(COL.CRACK);
     const ecstasy = getFormattedAndTrend(COL.ECSTASY);
+    const mapd = getFormattedAndTrend(COL.MAPD);
 
     const armas = getFormattedAndTrend(COL.ARMAS);
     const municoes = getFormattedAndTrend(COL.MUNICOES);
@@ -239,6 +241,7 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
         { label: 'LSD - Unid.', value: lsd.value, icon: 'mood', trend: lsd.trend },
         { label: 'Crack - G', value: crack.value, icon: 'layers', trend: crack.trend },
         { label: 'Ecstasy - Unid.', value: ecstasy.value, icon: 'pill', trend: ecstasy.trend },
+        { label: 'Multa Adm. Posse Drogas', value: mapd.value, icon: 'receipt_long', trend: mapd.trend },
       ],
       seizures: [
         { label: 'Armas', value: armas.value, icon: 'swords', customIcon: '/armas-icon.png', trend: armas.trend },
