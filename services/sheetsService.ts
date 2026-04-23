@@ -26,6 +26,7 @@ export interface SheetData {
     retencoes: string;
     recusaIgp: string;
     moedaEstrangeira: string;
+    mapd: string;
     trends?: Record<string, number>;
   };
   timeline: { month: string; value: number }[];
@@ -241,7 +242,6 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
         { label: 'LSD - Unid.', value: lsd.value, icon: 'mood', trend: lsd.trend },
         { label: 'Crack - G', value: crack.value, icon: 'layers', trend: crack.trend },
         { label: 'Ecstasy - Unid.', value: ecstasy.value, icon: 'pill', trend: ecstasy.trend },
-        { label: 'Multa Adm. Posse Drogas', value: mapd.value, icon: 'receipt_long', trend: mapd.trend },
       ],
       seizures: [
         { label: 'Armas', value: armas.value, icon: 'swords', customIcon: '/armas-icon.png', trend: armas.trend },
@@ -269,6 +269,7 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
         retencoes: getFormattedAndTrend(COL.RETENCOES).value,
         recusaIgp: getFormattedAndTrend(COL.RECUSA_IGP).value,
         moedaEstrangeira: getFormattedAndTrend(COL.MOEDA_ESTRANG).value,
+        mapd: mapd.value,
         trends: {
           prisoes: getFormattedAndTrend(COL.PESS_DETIDAS).trend,
           abordagens: getFormattedAndTrend(COL.PESS_ABORDADAS).trend,
