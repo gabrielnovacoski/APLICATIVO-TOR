@@ -129,16 +129,15 @@ export async function fetchSpreadsheetProductivity(startDate?: Date, endDate?: D
       LSD: 25,
       MDMA: 26,
       CRACK: 27,
-      MAPD: 28,
-
-      OUTRAS_DROGAS: 29,
+      OUTRAS_DROGAS: 28,
       ARMAS: 30,
       MUNICOES: 31,
       VEIC_RECUP: 32,
       DINHEIRO: 33,
       MOEDA_ESTRANG: 34,
       MERC_ILEGAIS: 36,
-      CIGARROS: 37
+      CIGARROS: 37,
+      MAPD: 39
     };
 
 
