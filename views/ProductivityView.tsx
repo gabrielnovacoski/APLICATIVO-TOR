@@ -32,9 +32,10 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
       const { data: vData } = await supabase.from('vehicles').select('*');
       if (vData) {
         const critical = vData.filter(v => {
-          const kmSinceChange = v.odometer - v.last_oil_change_odometer;
-          const life = Math.max(0, 100 - (kmSinceChange / v.oil_interval) * 100);
-          return life < 15; // Alerta se vida útil do óleo for menor que 15%
+          const nextChange = v.last_oil_change_odometer + v.oil_interval;
+          const remainingKm = nextChange - v.odometer;
+          const life = (remainingKm / 10000) * 100;
+          return life < 5; // Alerta se vida útil do óleo for menor que 5% (Limite Crítico)
         });
         setMaintenanceAlerts(critical);
       }
@@ -249,11 +250,12 @@ const ProductivityView: React.FC<{ startDate: Date; endDate: Date; isLoggedIn: b
 
 
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-8 gap-y-6 relative z-10 w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-x-8 gap-y-6 relative z-10 w-full">
           {[
             { label: 'Autos de Infr.', value: currentData.summary.autos },
             { label: 'ARVC', value: currentData.summary.arvc },
             { label: 'Recusa IGP', value: currentData.summary.recusaIgp },
+            { label: 'Multa Adm. Drogas', value: currentData.summary.mapd },
             { label: 'Ret. CNH/CLA', value: currentData.summary.retencoes },
             { label: 'Abordagens Pess.', value: currentData.summary.abordagens },
             { label: 'Abordagens Veic.', value: currentData.summary.abordagensVeic },
