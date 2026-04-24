@@ -371,6 +371,22 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
     }
   };
 
+  const handleDeleteVehicle = async (id: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir permanentemente a viatura ${id}?`)) {
+      setIsSaving(true);
+      const { error } = await supabase.from('vehicles').delete().eq('id', id);
+      if (!error) {
+        setVehicles(vehicles.filter(v => v.id !== id));
+        setEditVehicleId(null);
+        setEditingVehicle(null);
+        alert('Viatura excluída com sucesso!');
+      } else {
+        alert(`Erro ao excluir viatura: ${error.message}`);
+      }
+      setIsSaving(false);
+    }
+  };
+
   const calculateOilLife = (v: Vehicle) => {
     const baseInterval = 10000;
     const nextChange = v.lastOilChangeOdometer + v.oilInterval;
@@ -715,17 +731,30 @@ const OperationalView: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn }) => {
                 </div>
 
                 {editVehicleId === vehicle.id && (
-                  <div className="flex justify-end gap-3 pt-2">
-                    <button onClick={() => {
-                      if (editVehicleId?.startsWith('TEMP-')) {
-                        setVehicles(vehicles.filter(v => v.id !== editVehicleId));
-                      }
-                      setEditVehicleId(null);
-                      setEditingVehicle(null);
-                    }} disabled={isSaving} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 disabled:opacity-50">Cancelar</button>
-                    <button onClick={handleSaveVehicle} disabled={isSaving} className="bg-tor-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 min-w-[120px]">
-                      {isSaving ? 'Salvando...' : 'Salvar Viatura'}
-                    </button>
+                  <div className="flex justify-between items-center pt-2 w-full">
+                    {!editVehicleId.startsWith('TEMP-') ? (
+                      <button 
+                        onClick={() => handleDeleteVehicle(vehicle.id)} 
+                        disabled={isSaving} 
+                        className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-700 disabled:opacity-50 flex items-center gap-1"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span> Excluir
+                      </button>
+                    ) : (
+                      <div></div>
+                    )}
+                    <div className="flex gap-3">
+                      <button onClick={() => {
+                        if (editVehicleId?.startsWith('TEMP-')) {
+                          setVehicles(vehicles.filter(v => v.id !== editVehicleId));
+                        }
+                        setEditVehicleId(null);
+                        setEditingVehicle(null);
+                      }} disabled={isSaving} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 disabled:opacity-50">Cancelar</button>
+                      <button onClick={handleSaveVehicle} disabled={isSaving} className="bg-tor-dark text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 min-w-[120px]">
+                        {isSaving ? 'Salvando...' : 'Salvar Viatura'}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
