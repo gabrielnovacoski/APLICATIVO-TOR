@@ -321,7 +321,7 @@ const PersonnelAbsences: React.FC<PersonnelAbsencesProps> = ({ isLoggedIn }) => 
                                         </div>
 
                                         {absence.description && (
-                                            <p className="text-[10px] md:text-xs text-slate-500 italic px-1 truncate" title={absence.description}>"{absence.description}"</p>
+                                            <p className="text-[10px] md:text-xs text-slate-500 italic px-1" title={absence.description}>"{absence.description}"</p>
                                         )}
                                     </div>
                                 </div>
